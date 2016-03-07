@@ -34,8 +34,6 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
     private Button btnEntrar;
     private Handler mHandler = new Handler();
     GifView gifView;
-    static int estado = 1;
-    private Handler mDescargar = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,14 +41,12 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
         setContentView(R.layout.activity_loguin);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        habilitarloader(false);
 
         nombreUsuario = (EditText) findViewById(R.id.nombreUsuario);
         contrasena = (EditText) findViewById(R.id.password);
-
         btnEntrar = (Button) findViewById(R.id.btnEntrar);
         gifView = (GifView) findViewById(R.id.gif_view);
-
+        habilitarloader(false);
 
         nombreUsuario.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -162,11 +158,13 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
             @Override
             public void run() {
                 cambiarEstadoVisual(false);
+                habilitarloader(true);
                 try {
                     DescargarDatos();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
             }
         });
     }
@@ -211,7 +209,7 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
                 mostrarMensaje("ERROR DE AUTENTICACION", Toast.LENGTH_LONG);
                 habilitarloader(false);
                 contrasena.setText("");
-                cambiarEstadoVisual(false);
+                cambiarEstadoVisual(true);
             } else {
                 mostrarMensaje("Bienvenido " + usuario.getNombreUsuario(), Toast.LENGTH_LONG);
                 Intent i = new Intent(this, selecionProyecto.class);
