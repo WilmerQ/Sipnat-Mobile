@@ -1,10 +1,8 @@
 package com.example.wilmer.sat_riomanzanares;
 
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.StrictMode;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -17,7 +15,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.wilmer.sat_riomanzanares.modelo.Usuario;
@@ -25,14 +22,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 public class Loguin extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -86,11 +78,7 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
                 }
 
                 if ((nombreUsuario.getText().length() != 0) && (contrasena.getText().length() != 0)) {
-                    try {
-                        AntesConectar();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    accionLoguin();
                 }
             }
         });
@@ -160,92 +148,6 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
         return true;
     }
 
-    private void AntesConectar() {
-        String url = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/Usuario/" + nombreUsuario.getText() + "/" + contrasena.getText();
-        btnEntrar.setClickable(false);
-        IngresarAsynctask asynctask1 = new IngresarAsynctask();
-        asynctask1.execute(url);
-
-        Boolean parar = false;
-        while (parar == false) {
-            while (estado == 2) {
-                Intent i = new Intent(Loguin.this, selecionProyecto.class);
-                i.putExtra("parametro", usuario.getNombreUsuario());
-                i.putExtra("usuarioDatos", usuario);
-                nombreUsuario.setText("");
-                contrasena.setText("");
-                btnEntrar.setClickable(true);
-                habilitarloader(false);
-                parar = true;
-                startActivity(i);
-            }
-        }
-    }
-
-    /*private void ingresar() throws Exception {
-        StringBuilder finalStr = new StringBuilder();
-        String usr1 = nombreUsuario.getText().toString();
-        String usr = usr1.replace(" ", "");
-        String pass1 = contrasena.getText().toString();
-        String pass = pass1.replace(" ", "");
-        BufferedReader in;
-        try {
-            URL url = new URL("http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/Usuario/" + usr + "/" + pass);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(5 * 1000);
-            connection.setReadTimeout(10 * 1000);
-            connection.connect();
-            Log.d("SAT", "Conectando a: " + url);
-            Log.d("SAT", "Tiempo de conexion: " + connection.getConnectTimeout() + " ......" + connection.getReadTimeout());
-            in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-
-        } catch (Exception e) {
-            mostrarMensaje("Sin Conexion  a internet", Toast.LENGTH_LONG);
-            habilitarloader(false);
-            Log.e("SAT", "Error: " + e.getMessage());
-            btnEntrar.setClickable(true);
-            throw new Exception("SIN CONEXION");
-
-
-        }
-        Log.d("SAT", "Recibiendo Datos");
-        String str;
-        while ((str = in.readLine()) != null) {
-            finalStr.append(str);
-            Log.d("SAT", "Recibiendo Datos...");
-        }
-
-        in.close();
-
-        Log.d("SAT", "Resultado: " + finalStr.toString());
-
-        Gson gson = new Gson();
-
-        try {
-            usuario = gson.fromJson(finalStr.toString(), Usuario.class);
-            if (usuario.getInformeDeError() == 1) {
-                mostrarMensaje("ERROR DE AUTENTICACION", Toast.LENGTH_LONG);
-                habilitarloader(false);
-                contrasena.setText("");
-                btnEntrar.setClickable(true);
-            } else {
-                //mostrarMensaje("Bienvenido " + usuario.getNombreUsuario(), Toast.LENGTH_LONG);
-                Intent i = new Intent(this, selecionProyecto.class);
-                i.putExtra("parametro", usuario.getNombreUsuario());
-                i.putExtra("usuarioDatos", usuario);
-                nombreUsuario.setText("");
-                contrasena.setText("");
-                habilitarloader(false);
-                btnEntrar.setClickable(true);
-                startActivity(i);
-
-            }
-        } catch (JsonSyntaxException e) {
-            e.printStackTrace();
-        }
-    }*/
-
     private void mostrarMensaje(final String mensaje, final int duracion) {
         mHandler.post(new Runnable() {
             @Override
@@ -255,101 +157,89 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
         });
     }
 
+    public void accionLoguin() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                cambiarEstadoVisual(false);
+                try {
+                    DescargarDatos();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
 
-    private class IngresarAsynctask extends AsyncTask<String, String, String> {
-
+    private void DescargarDatos() throws Exception {
         StringBuilder finalStr = new StringBuilder();
         BufferedReader in;
         HttpURLConnection connection;
 
-        @Override
-        protected void onPreExecute() {
-            habilitarloader(true);
-            super.onPreExecute();
+
+        try {
+            URL url = new URL("http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/Usuario/" + nombreUsuario.getText().toString().trim() + "/" + contrasena.getText().toString().trim());
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(5 * 1000);
+            connection.setReadTimeout(5 * 1000);
+            connection.connect();
+            Log.d("SAT", "Conectando a: " + url);
+            Log.d("SAT", "Tiempo de conexion: " + connection.getConnectTimeout() + " ......" + connection.getReadTimeout());
+            in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+        } catch (Exception e) {
+            mostrarMensaje("Sin Conexion  a internet", Toast.LENGTH_LONG);
+            habilitarloader(false);
+            Log.e("SAT", "Error: " + e.getMessage());
+            cambiarEstadoVisual(true);
+            throw new Exception("SIN CONEXION");
         }
-
-        @Override
-        protected String doInBackground(String... params) {
-
-            try {
-
-                URL url = new URL(params[0]);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setConnectTimeout(5 * 1000);
-                connection.setReadTimeout(5 * 1000);
-                connection.connect();
-                in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                Log.d("SAT", "Recibiendo Datos");
-            } catch (IOException e) {
-                e.printStackTrace();
-                publishProgress("Sin Internet o Excede Limite de tiempo");
-                return "falloConexion";
-            }
-
-            String str;
-            Gson gson = new Gson();
-
-            try {
-                while ((str = in.readLine()) != null) {
-                    finalStr.append(str);
-                    Log.d("SAT", "Recibiendo Datos...");
-                }
-                in.close();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            Log.d("SAT", "Resultado: " + finalStr.toString());
-
-            try {
-                usuario = gson.fromJson(finalStr.toString(), Usuario.class);
-                if (usuario.getInformeDeError() == 1) {
-                    publishProgress("ERROR DE AUTENTICACION");
-                    return "falloAutenticado";
-                } else {
-                    publishProgress("Bienvenido " + usuario.getNombreUsuario());
-                    return "True";
-                }
-            } catch (JsonSyntaxException e) {
-                e.printStackTrace();
-                return "falloSistema";
-            }
+        Log.d("SAT", "Recibiendo Datos");
+        String str;
+        while ((str = in.readLine()) != null) {
+            finalStr.append(str);
+            Log.d("SAT", "Recibiendo Datos...");
         }
+        in.close();
+        Log.d("SAT", "Resultado: " + finalStr.toString());
+        Gson gson = new Gson();
 
-        @Override
-        protected void onProgressUpdate(String... values) {
-            mostrarMensaje(values[0], Toast.LENGTH_LONG);
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onPostExecute(String aVoid) {
-            Log.d("SAT", "imprimir  avoid: " + aVoid);
-            contrasena.setText("");
-            if (aVoid.contains("True")) {
-
-                estado = 2;
-
-            } else if (aVoid.contains("falloAutenticado")) {
+        try {
+            usuario = gson.fromJson(finalStr.toString(), Usuario.class);
+            if (usuario.getInformeDeError() == 1) {
+                mostrarMensaje("ERROR DE AUTENTICACION", Toast.LENGTH_LONG);
                 habilitarloader(false);
+                contrasena.setText("");
+                cambiarEstadoVisual(false);
+            } else {
+                mostrarMensaje("Bienvenido " + usuario.getNombreUsuario(), Toast.LENGTH_LONG);
+                Intent i = new Intent(this, selecionProyecto.class);
+                i.putExtra("parametro", usuario.getNombreUsuario());
+                i.putExtra("usuarioDatos", usuario);
                 nombreUsuario.setText("");
                 contrasena.setText("");
-                btnEntrar.setClickable(true);
-
-            } else if (aVoid.contains("falloConexion")) {
-                btnEntrar.setClickable(true);
                 habilitarloader(false);
-
-            } else if (aVoid.contains("falloSistema")) {
-                habilitarloader(false);
-                btnEntrar.setClickable(true);
+                cambiarEstadoVisual(true);
+                startActivity(i);
 
             }
-            super.onPostExecute(aVoid);
+        } catch (JsonSyntaxException e) {
+            e.printStackTrace();
         }
 
+
+    }
+
+
+    private void cambiarEstadoVisual(final boolean flag) {
+        mHandler.post(new Runnable() {
+            public void run() {
+                nombreUsuario.setEnabled(flag);
+                contrasena.setEnabled(flag);
+                btnEntrar.setEnabled(flag);
+            }
+        });
     }
 
     private void habilitarloader(final boolean habilitar) {
