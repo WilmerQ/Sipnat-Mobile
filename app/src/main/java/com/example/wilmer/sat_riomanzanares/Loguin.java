@@ -1,5 +1,6 @@
 package com.example.wilmer.sat_riomanzanares;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.wilmer.sat_riomanzanares.modelo.Usuario;
@@ -28,12 +30,21 @@ import java.net.URL;
 
 public class Loguin extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
+
     public static Usuario usuario;
     private EditText nombreUsuario;
     private EditText contrasena;
     private Button btnEntrar;
+    //private Handler mHandler1;
     private Handler mHandler = new Handler();
-    GifView gifView;
+    //GifView gifView;
+    HttpURLConnection connection;
+    Thread threadSecundario;
+    ProgressDialog pd;
+    private ProgressBar progreso;
+
+
+    Intent i;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,8 +56,13 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
         nombreUsuario = (EditText) findViewById(R.id.nombreUsuario);
         contrasena = (EditText) findViewById(R.id.password);
         btnEntrar = (Button) findViewById(R.id.btnEntrar);
-        gifView = (GifView) findViewById(R.id.gif_view);
-        habilitarloader(false);
+        // gifView = (GifView) findViewById(R.id.gif_view);
+        progreso = (ProgressBar) findViewById(R.id.progressBar);
+
+        progreso.setMax(100);
+        progreso.setVisibility(View.INVISIBLE);
+        //habilitarloader(false);
+        i = new Intent(Loguin.this, Registro.class);
 
         nombreUsuario.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -74,7 +90,27 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
                 }
 
                 if ((nombreUsuario.getText().length() != 0) && (contrasena.getText().length() != 0)) {
-                    accionLoguin();
+                    threadSecundario = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                cambiarEstadoVisual(false);
+                                DescargarDatos(nombreUsuario.getText().toString(), contrasena.getText().toString());
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                    threadSecundario.start();
+                    while (progreso.getProgress() < progreso.getMax()) {
+                        Log.d("SAT", "Esperando.");
+                        if (!(usuario == null)) {
+                            i.putExtra("parametro", usuario.getNombreUsuario());
+                            i.putExtra("usuarioDatos", usuario);
+                            startActivity(i);
+                            break;
+                        }
+                    }
                 }
             }
         });
@@ -153,42 +189,28 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
         });
     }
 
-    public void accionLoguin() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                cambiarEstadoVisual(false);
-                habilitarloader(true);
-                try {
-                    DescargarDatos();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+    public void DescargarDatos(String usr, String pass) throws Exception {
 
-            }
-        });
-    }
-
-    private void DescargarDatos() throws Exception {
+        //StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        //StrictMode.setThreadPolicy(policy);
+        Thread.sleep(5000);
         StringBuilder finalStr = new StringBuilder();
         BufferedReader in;
-        HttpURLConnection connection;
-
-
+        URL url = new URL("http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/Usuario/" + usr + "/" + pass);
         try {
-            URL url = new URL("http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/Usuario/" + nombreUsuario.getText().toString().trim() + "/" + contrasena.getText().toString().trim());
+
+            actualizarVista(20);
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(5 * 1000);
-            connection.setReadTimeout(5 * 1000);
+            connection.setReadTimeout(10 * 1000);
             connection.connect();
             Log.d("SAT", "Conectando a: " + url);
-            Log.d("SAT", "Tiempo de conexion: " + connection.getConnectTimeout() + " ......" + connection.getReadTimeout());
             in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
         } catch (Exception e) {
             mostrarMensaje("Sin Conexion  a internet", Toast.LENGTH_LONG);
-            habilitarloader(false);
+            //habilitarloader(false);
             Log.e("SAT", "Error: " + e.getMessage());
             cambiarEstadoVisual(true);
             throw new Exception("SIN CONEXION");
@@ -197,38 +219,38 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
         String str;
         while ((str = in.readLine()) != null) {
             finalStr.append(str);
+            actualizarVista(progreso.getProgress() + 10);
             Log.d("SAT", "Recibiendo Datos...");
         }
         in.close();
         Log.d("SAT", "Resultado: " + finalStr.toString());
+        actualizarVista(100);
         Gson gson = new Gson();
 
         try {
             usuario = gson.fromJson(finalStr.toString(), Usuario.class);
             if (usuario.getInformeDeError() == 1) {
                 mostrarMensaje("ERROR DE AUTENTICACION", Toast.LENGTH_LONG);
-                habilitarloader(false);
+                //habilitarloader(false);
                 contrasena.setText("");
                 cambiarEstadoVisual(true);
+
             } else {
                 mostrarMensaje("Bienvenido " + usuario.getNombreUsuario(), Toast.LENGTH_LONG);
-                Intent i = new Intent(this, selecionProyecto.class);
-                i.putExtra("parametro", usuario.getNombreUsuario());
-                i.putExtra("usuarioDatos", usuario);
                 nombreUsuario.setText("");
                 contrasena.setText("");
-                habilitarloader(false);
+                //  habilitarloader(false);
                 cambiarEstadoVisual(true);
-                startActivity(i);
+                btnEntrar.setClickable(true);
+
 
             }
         } catch (JsonSyntaxException e) {
+            //habilitarloader(false);
+            cambiarEstadoVisual(true);
             e.printStackTrace();
         }
-
-
     }
-
 
     private void cambiarEstadoVisual(final boolean flag) {
         mHandler.post(new Runnable() {
@@ -240,7 +262,11 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
         });
     }
 
-    private void habilitarloader(final boolean habilitar) {
+    private void intent(final Usuario usuario) {
+
+    }
+
+   /* private void habilitarloader(final boolean habilitar) {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -253,6 +279,30 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
                 }
             }
         });
+    }*/
+
+    private void actualizarVista(final int progress) {
+        if (progreso.getVisibility() == View.INVISIBLE) {
+            progreso.setVisibility(View.VISIBLE);
+        }
+        mHandler.post(new Runnable() {
+            public void run() {
+                if (progreso != null) {
+                    progreso.setProgress(progress);
+                    Log.d("SAT", "Progreso " + progress);
+                    Log.d("SAT", "visibilidad " + progreso.getVisibility());
+                }
+            }
+        });
     }
+
+    private void setProgresoIndeterminado(final boolean flag) {
+        mHandler.post(new Runnable() {
+            public void run() {
+                progreso.setIndeterminate(flag);
+            }
+        });
+    }
+
 
 }
