@@ -1,7 +1,7 @@
 package com.example.wilmer.sat_riomanzanares;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.NavigationView;
@@ -24,24 +24,18 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class Loguin extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-
-    public static Usuario usuario;
     private EditText nombreUsuario;
     private EditText contrasena;
     private Button btnEntrar;
-    //private Handler mHandler1;
-    private Handler mHandler = new Handler();
-    //GifView gifView;
-    HttpURLConnection connection;
-    Thread threadSecundario;
-    ProgressDialog pd;
-    private ProgressBar progreso;
+    private Handler mHandler = new Handler(), mHandler1 = new Handler();
+    ProgressBar progreso;
 
 
     Intent i;
@@ -56,12 +50,8 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
         nombreUsuario = (EditText) findViewById(R.id.nombreUsuario);
         contrasena = (EditText) findViewById(R.id.password);
         btnEntrar = (Button) findViewById(R.id.btnEntrar);
-        // gifView = (GifView) findViewById(R.id.gif_view);
         progreso = (ProgressBar) findViewById(R.id.progressBar);
-
-        progreso.setMax(100);
         progreso.setVisibility(View.INVISIBLE);
-        //habilitarloader(false);
         i = new Intent(Loguin.this, Registro.class);
 
         nombreUsuario.setOnClickListener(new View.OnClickListener() {
@@ -90,27 +80,10 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
                 }
 
                 if ((nombreUsuario.getText().length() != 0) && (contrasena.getText().length() != 0)) {
-                    threadSecundario = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                cambiarEstadoVisual(false);
-                                DescargarDatos(nombreUsuario.getText().toString(), contrasena.getText().toString());
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
-                    threadSecundario.start();
-                    while (progreso.getProgress() < progreso.getMax()) {
-                        Log.d("SAT", "Esperando.");
-                        if (!(usuario == null)) {
-                            i.putExtra("parametro", usuario.getNombreUsuario());
-                            i.putExtra("usuarioDatos", usuario);
-                            startActivity(i);
-                            break;
-                        }
-                    }
+
+                    String url = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/Usuario/" + nombreUsuario.getText().toString() + "/" + contrasena.getText().toString();
+                    cambiarEstadoVisual(false);
+                    new Descargar().execute(url);
                 }
             }
         });
@@ -184,72 +157,9 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(getApplicationContext(), mensaje, duracion).show();
+                Toast.makeText(getBaseContext(), mensaje, duracion).show();
             }
         });
-    }
-
-    public void DescargarDatos(String usr, String pass) throws Exception {
-
-        //StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        //StrictMode.setThreadPolicy(policy);
-        Thread.sleep(5000);
-        StringBuilder finalStr = new StringBuilder();
-        BufferedReader in;
-        URL url = new URL("http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/Usuario/" + usr + "/" + pass);
-        try {
-
-            actualizarVista(20);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(5 * 1000);
-            connection.setReadTimeout(10 * 1000);
-            connection.connect();
-            Log.d("SAT", "Conectando a: " + url);
-            in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-
-        } catch (Exception e) {
-            mostrarMensaje("Sin Conexion  a internet", Toast.LENGTH_LONG);
-            //habilitarloader(false);
-            Log.e("SAT", "Error: " + e.getMessage());
-            cambiarEstadoVisual(true);
-            throw new Exception("SIN CONEXION");
-        }
-        Log.d("SAT", "Recibiendo Datos");
-        String str;
-        while ((str = in.readLine()) != null) {
-            finalStr.append(str);
-            actualizarVista(progreso.getProgress() + 10);
-            Log.d("SAT", "Recibiendo Datos...");
-        }
-        in.close();
-        Log.d("SAT", "Resultado: " + finalStr.toString());
-        actualizarVista(100);
-        Gson gson = new Gson();
-
-        try {
-            usuario = gson.fromJson(finalStr.toString(), Usuario.class);
-            if (usuario.getInformeDeError() == 1) {
-                mostrarMensaje("ERROR DE AUTENTICACION", Toast.LENGTH_LONG);
-                //habilitarloader(false);
-                contrasena.setText("");
-                cambiarEstadoVisual(true);
-
-            } else {
-                mostrarMensaje("Bienvenido " + usuario.getNombreUsuario(), Toast.LENGTH_LONG);
-                nombreUsuario.setText("");
-                contrasena.setText("");
-                //  habilitarloader(false);
-                cambiarEstadoVisual(true);
-                btnEntrar.setClickable(true);
-
-
-            }
-        } catch (JsonSyntaxException e) {
-            //habilitarloader(false);
-            cambiarEstadoVisual(true);
-            e.printStackTrace();
-        }
     }
 
     private void cambiarEstadoVisual(final boolean flag) {
@@ -262,35 +172,12 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
         });
     }
 
-    private void intent(final Usuario usuario) {
-
-    }
-
-   /* private void habilitarloader(final boolean habilitar) {
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                if (habilitar) {
-                    gifView.setVisibility(View.VISIBLE);
-                    //loader.setVisibility(View.VISIBLE);
-                } else {
-                    gifView.setVisibility(View.INVISIBLE);
-                    //  loader.setVisibility(View.INVISIBLE);
-                }
-            }
-        });
-    }*/
-
     private void actualizarVista(final int progress) {
-        if (progreso.getVisibility() == View.INVISIBLE) {
-            progreso.setVisibility(View.VISIBLE);
-        }
-        mHandler.post(new Runnable() {
+        mHandler1.post(new Runnable() {
             public void run() {
                 if (progreso != null) {
                     progreso.setProgress(progress);
                     Log.d("SAT", "Progreso " + progress);
-                    Log.d("SAT", "visibilidad " + progreso.getVisibility());
                 }
             }
         });
@@ -302,6 +189,106 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
                 progreso.setIndeterminate(flag);
             }
         });
+    }
+
+    public class Descargar extends AsyncTask<String, String, Boolean> {
+
+        HttpURLConnection connection;
+        StringBuilder finalStr = new StringBuilder();
+        BufferedReader in;
+        Gson gson = new Gson();
+        Usuario usuario;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progreso.setMax(100);
+            progreso.setVisibility(View.VISIBLE);
+            actualizarVista(0);
+        }
+
+        protected Boolean doInBackground(String... params) {
+            try {
+                URL url = new URL(params[0]);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(5 * 1000);
+                connection.setReadTimeout(10 * 1000);
+                connection.connect();
+                Log.d("SAT", "Conectando a: " + url);
+                in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            } catch (Exception e) {
+                publishProgress("sin Internet");
+                Log.e("SAT", "Error: " + e.getMessage());
+                cambiarEstadoVisual(true);
+                return null;
+            }
+
+            try {
+                Log.d("SAT", "Recibiendo Datos");
+                String str;
+                while ((str = in.readLine()) != null) {
+                    finalStr.append(str);
+                    Log.d("SAT", "Recibiendo Datos...");
+                }
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                cambiarEstadoVisual(true);
+                return null;
+            }
+
+            Log.d("SAT", "Resultado: " + finalStr.toString());
+            actualizarVista(50);
+
+
+            usuario = gson.fromJson(finalStr.toString(), Usuario.class);
+            if (usuario.getInformeDeError() == 1) {
+                publishProgress("ERROR De Autenticacion");
+                return false;
+            } else {
+                publishProgress("Bienvenido " + usuario.getNombreUsuario());
+                return true;
+            }
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            if (!(values == null)) {
+                mostrarMensaje(" " + values[0], Toast.LENGTH_LONG);
+                actualizarVista(progreso.getProgress() + 10);
+            }
+            super.onProgressUpdate(values);
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aVoid) {
+            try {
+                if (aVoid == null) {
+                    cambiarEstadoVisual(true);
+                    progreso.setVisibility(View.INVISIBLE);
+                } else if (!aVoid) {
+                    contrasena.setText("");
+                    cambiarEstadoVisual(true);
+                    progreso.setVisibility(View.INVISIBLE);
+
+                } else {
+                    nombreUsuario.setText("");
+                    contrasena.setText("");
+                    cambiarEstadoVisual(true);
+                    i.putExtra("parametro", usuario.getNombreUsuario());
+                    i.putExtra("usuarioDatos", usuario);
+                    progreso.setProgress(100);
+                    startActivity(i);
+                    finish();
+                }
+            } catch (JsonSyntaxException e) {
+                cambiarEstadoVisual(true);
+                progreso.setVisibility(View.INVISIBLE);
+                e.printStackTrace();
+            }
+            super.onPostExecute(aVoid);
+        }
     }
 
 
