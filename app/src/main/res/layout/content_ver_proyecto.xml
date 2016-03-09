@@ -58,4 +58,13 @@
         android:layout_alignEnd="@+id/fragmentVerMapa"
         android:textStyle="bold|normal"
         android:textSize="18dp" />
+
+    <ProgressBar
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBarVerProyecto"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:indeterminate="false" />
 </RelativeLayout>

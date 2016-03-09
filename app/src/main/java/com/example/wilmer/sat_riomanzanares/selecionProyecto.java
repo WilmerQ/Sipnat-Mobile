@@ -147,34 +147,6 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
         return true;
     }
 
-   /*public void obtenerProyectos() throws Exception {
-        StringBuilder finalStr = new StringBuilder();
-        String nombre = getIntent().getExtras().getString("parametro");
-        Log.d("SAT", "nombreusuario" + nombre);
-        URL url = new URL("http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/Proyecto/" + nombre);
-        BufferedReader in;
-        Log.d("SAT", "Conectando a: " + url);
-        try {
-            in = new BufferedReader(new InputStreamReader(url.openStream()));
-        } catch (Exception e) {
-            Log.e("SAT", "Error: " + e.getMessage());
-            habilitarloader(false);
-            throw new Exception("SIN CONEXION");
-        }
-        Log.d("SAT", "Recibiendo Datos");
-        String str;
-        while ((str = in.readLine()) != null) {
-            finalStr.append(str);
-            Log.d("SAT", "Recibiendo Datos...");
-        }
-        in.close();
-        Log.d("SAT", "Resultado: " + finalStr.toString());
-        Type listType = new TypeToken<LinkedList<Proyecto>>() {
-        }.getType();
-        lProyectos = new Gson().fromJson(finalStr.toString(), listType);
-        habilitarloader(false);
-    }*/
-
     private void mostrarMensaje(final String mensaje, final int duracion) {
         mHandler.post(new Runnable() {
             @Override
