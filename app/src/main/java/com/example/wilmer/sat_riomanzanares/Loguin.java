@@ -52,7 +52,7 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
         btnEntrar = (Button) findViewById(R.id.btnEntrar);
         progreso = (ProgressBar) findViewById(R.id.progressBar);
         progreso.setVisibility(View.INVISIBLE);
-        i = new Intent(Loguin.this, Registro.class);
+        i = new Intent(Loguin.this, selecionProyecto.class);
 
         nombreUsuario.setOnClickListener(new View.OnClickListener() {
             @Override

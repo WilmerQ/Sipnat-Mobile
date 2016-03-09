@@ -4,27 +4,25 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.StrictMode;
-import android.util.Log;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.wilmer.sat_riomanzanares.modelo.Proyecto;
 import com.example.wilmer.sat_riomanzanares.modelo.Usuario;
-import com.example.wilmer.sat_riomanzanares.modelo.listas;
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedReader;
@@ -34,23 +32,17 @@ import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.ExecutionException;
 
 public class selecionProyecto extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
 
     ListView listaProyectos;
-    listas listaActual = new listas();
-    descargarProyectoAsynctask proyectoAsynctask = new descargarProyectoAsynctask();
-    List<Proyecto> lProyectos = new ArrayList<Proyecto>();
-
-    private Handler mHandler = new Handler();
-
-    GifView gifView;
+    List<Proyecto> lProyectos = new ArrayList<>();
+    List<String> listaProyectosTemp = new ArrayList<>();
+    Handler mHandler = new Handler();
+    ProgressBar bar;
 
 
     @Override
@@ -60,31 +52,38 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        gifView = (GifView) findViewById(R.id.gif_view1);
-        //habilitarloader(true);
         listaProyectos = (ListView) findViewById(R.id.listProyectos);
+        bar = (ProgressBar) findViewById(R.id.progressBarSeleccionProyecto);
+        bar.setVisibility(View.VISIBLE);
+        bar.setMax(5);
+
 
         String url = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/Proyecto/" + getIntent().getExtras().getString("parametro");
-        proyectoAsynctask.execute(url);
+        new DescargarProyectos().execute(url);
 
-       /* listaProyectos.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        listaProyectos.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 String item = parent.getItemAtPosition(position).toString();
                 Log.d("SAT", "item lista: " + item);
-                Proyecto proyectoSelecionado = new Proyecto();
+                Proyecto proyectoSelecionado = null;
 
-                for (int i = 0; i < listaActual.getStringList().size(); i++) {
-                    if (listaActual.getProyectoList().get(i).getNombre().contains(item)) {
-                        proyectoSelecionado = listaActual.getProyectoList().get(i);
+                for (int i = 0; i < listaProyectosTemp.size(); i++) {
+                    if (lProyectos.get(i).getNombre().contains(item)) {
+                        proyectoSelecionado = lProyectos.get(i);
                     }
                 }
-                Intent intent = new Intent(getApplicationContext(), verProyecto.class);
-                intent.putExtra("proyectoSelecionado", proyectoSelecionado);
-                startActivity(intent);
+                if (proyectoSelecionado != null) {
+                    Intent intent = new Intent(getBaseContext(), verProyecto.class);
+                    intent.putExtra("proyectoSelecionado", proyectoSelecionado);
+                    startActivity(intent);
+                } else {
+                    mostrarMensaje("No hay Conexion a internet", Toast.LENGTH_LONG);
+                }
+
             }
-        });*/
+        });
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -148,14 +147,7 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
         return true;
     }
 
-    private void AntesConectar() {
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-
-
-    }
-
-    /*public void obtenerProyectos() throws Exception {
+   /*public void obtenerProyectos() throws Exception {
         StringBuilder finalStr = new StringBuilder();
         String nombre = getIntent().getExtras().getString("parametro");
         Log.d("SAT", "nombreusuario" + nombre);
@@ -192,46 +184,63 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
         });
     }
 
-    private void habilitarloader(final boolean habilitar) {
+    private void cambiarEstadoVisual(final boolean flag) {
         mHandler.post(new Runnable() {
-            @Override
             public void run() {
-                if (habilitar) {
-                    gifView.setVisibility(View.VISIBLE);
-                    //loader.setVisibility(View.VISIBLE);
-                } else {
-                    gifView.setVisibility(View.INVISIBLE);
-                    //  loader.setVisibility(View.INVISIBLE);
+                listaProyectos.setEnabled(flag);
+            }
+        });
+    }
+
+    private void actualizarVista(final int progress) {
+        mHandler.post(new Runnable() {
+            public void run() {
+                if (bar != null) {
+                    bar.setProgress(progress);
+                    Log.d("SAT", "Progreso " + progress);
+                    if (bar.getMax() == bar.getProgress()) {
+                        bar.setVisibility(View.INVISIBLE);
+                    }
                 }
             }
         });
     }
 
-    private class descargarProyectoAsynctask extends AsyncTask<String, String, String> {
+    public class DescargarProyectos extends AsyncTask<String, String, Boolean> {
 
+        HttpURLConnection connection;
+        StringBuilder finalStr = new StringBuilder();
+        BufferedReader in;
 
         @Override
-        protected String doInBackground(String... params) {
-            StringBuilder finalStr = new StringBuilder();
-            BufferedReader in = null;
-            HttpURLConnection connection;
+        protected void onPreExecute() {
+            actualizarVista(1);
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Boolean doInBackground(String... params) {
             try {
                 URL url = new URL(params[0]);
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
-                connection.setConnectTimeout(5 * 1000);
-                connection.setReadTimeout(5 * 1000);
+                connection.setConnectTimeout(10 * 1000);
+                connection.setReadTimeout(10 * 1000);
                 connection.connect();
+                Log.d("SAT", "Conectando a: " + url);
                 in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                Log.d("SAT", "Recibiendo Datos");
-            } catch (IOException e) {
-                e.printStackTrace();
-                publishProgress("Sin Internet o Excede Limite de tiempo");
+                actualizarVista(2);
+            } catch (Exception e) {
+                publishProgress("sin Internet");
+                Log.e("SAT", "Error: " + e.getMessage());
+                cambiarEstadoVisual(true);
+                return null;
             }
 
-            String str;
             try {
-                assert in != null;
+                publishProgress("Recibiendo Proyectos");
+                Log.d("SAT", "Recibiendo Datos");
+                String str;
                 while ((str = in.readLine()) != null) {
                     finalStr.append(str);
                     Log.d("SAT", "Recibiendo Datos...");
@@ -239,29 +248,40 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
                 in.close();
             } catch (IOException e) {
                 e.printStackTrace();
+                cambiarEstadoVisual(true);
+                return null;
             }
 
             Log.d("SAT", "Resultado: " + finalStr.toString());
-
+            actualizarVista(3);
             Type listType = new TypeToken<LinkedList<Proyecto>>() {
             }.getType();
             lProyectos = new Gson().fromJson(finalStr.toString(), listType);
-
-            Log.d("SAT", "Lista Cargandose");
-            return finalStr.toString();
+            return true;
         }
-
 
         @Override
-        protected void onPostExecute(String aVoid) {
-            //ArrayAdapter<Proyecto> adapter = new ArrayAdapter<Proyecto>(selecionProyecto.this, android.R.layout.simple_list_item_1, lProyectos);
-            //listaProyectos.setAdapter(adapter);
-
-            Log.d("SAT", "imprimir  avoid: " + aVoid);
-
-
-            super.onPostExecute(aVoid);
+        protected void onPostExecute(Boolean aBoolean) {
+            if (aBoolean) {
+                for (int i = 0; i < lProyectos.size(); i++) {
+                    listaProyectosTemp.add(i, lProyectos.get(i).getNombre());
+                }
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(getBaseContext(), android.R.layout.simple_list_item_1, listaProyectosTemp);
+                listaProyectos.setAdapter(adapter);
+                cambiarEstadoVisual(true);
+                actualizarVista(5);
+            } else {
+                mostrarMensaje("Error de conexion - Verifique la conexion", Toast.LENGTH_LONG);
+            }
+            super.onPostExecute(aBoolean);
         }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            mostrarMensaje(values[0], Toast.LENGTH_LONG);
+            super.onProgressUpdate(values);
+        }
+
 
     }
 

@@ -45,11 +45,14 @@
         android:layout_alignParentBottom="true"
         android:choiceMode="singleChoice" />
 
-    <com.example.wilmer.sat_riomanzanares.GifView
-        android:id="@+id/gif_view1"
-        android:layout_width="wrap_content"
+    <ProgressBar
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
+        android:id="@+id/progressBarSeleccionProyecto"
         android:layout_centerHorizontal="true"
-        android:clickable="false" />
+        android:layout_centerVertical="true"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:indeterminate="false" />
+
+
 </RelativeLayout>
