@@ -321,10 +321,10 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
         protected void onPostExecute(Boolean aBoolean) {
             if (aBoolean == null) {
                 mostrarMensaje("Error de conexion - Verifique la conexion", Toast.LENGTH_LONG);
+                finish();
             } else if (aBoolean) {
                 cambiarEstadoVisual(true);
                 actualizarVista(5);
-
             }
             super.onPostExecute(aBoolean);
         }

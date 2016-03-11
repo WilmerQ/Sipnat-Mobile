@@ -234,16 +234,21 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
 
         @Override
         protected void onPostExecute(Boolean aBoolean) {
-            if (aBoolean) {
-                for (int i = 0; i < lProyectos.size(); i++) {
-                    listaProyectosTemp.add(i, lProyectos.get(i).getNombre());
+            if (!(aBoolean == null)) {
+                if (aBoolean) {
+                    for (int i = 0; i < lProyectos.size(); i++) {
+                        listaProyectosTemp.add(i, lProyectos.get(i).getNombre());
+                    }
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(getBaseContext(), android.R.layout.simple_list_item_1, listaProyectosTemp);
+                    listaProyectos.setAdapter(adapter);
+                    cambiarEstadoVisual(true);
+                    actualizarVista(5);
+                } else {
+                    mostrarMensaje("Error de conexion - Verifique la conexion", Toast.LENGTH_LONG);
                 }
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(getBaseContext(), android.R.layout.simple_list_item_1, listaProyectosTemp);
-                listaProyectos.setAdapter(adapter);
-                cambiarEstadoVisual(true);
-                actualizarVista(5);
             } else {
                 mostrarMensaje("Error de conexion - Verifique la conexion", Toast.LENGTH_LONG);
+                cambiarEstadoVisual(true);
             }
             super.onPostExecute(aBoolean);
         }

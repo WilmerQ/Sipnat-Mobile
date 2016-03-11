@@ -2,58 +2,46 @@ package com.example.wilmer.sat_riomanzanares;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.graphics.Color;
-import android.graphics.DashPathEffect;
-import android.graphics.LinearGradient;
-import android.graphics.Paint;
-import android.graphics.Shader;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.widget.ImageButton;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.androidplot.Plot;
-import com.androidplot.xy.LineAndPointFormatter;
-import com.androidplot.xy.SimpleXYSeries;
 import com.androidplot.xy.XYPlot;
-import com.androidplot.xy.XYSeries;
-import com.androidplot.xy.XYStepMode;
 import com.example.wilmer.sat_riomanzanares.modelo.Dato;
 import com.example.wilmer.sat_riomanzanares.modelo.Sensor;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.DecimalFormat;
-import java.text.FieldPosition;
-import java.text.Format;
-import java.text.NumberFormat;
-import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
 
-/**
- * Created by Wilmer on 2/02/2016.
- */
+
 public class Pop extends Activity {
 
 
     Sensor sensor;
     TextView id;
     TextView tipo;
-    ImageButton cerrar;
     private XYPlot mySimpleXYPlot;
     List<Dato> datos = new ArrayList<>();
+    Handler mHandler = new Handler();
+    ProgressBar bar;
+
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     @Override
@@ -65,6 +53,9 @@ public class Pop extends Activity {
         int width = metrics.widthPixels;
         int height = metrics.heightPixels;
 
+        bar = (ProgressBar) findViewById(R.id.progressBarPopWindow);
+        bar.setVisibility(View.VISIBLE);
+        bar.setMax(5);
 
         sensor = (Sensor) getIntent().getExtras().getSerializable("sensorSeleccionado");
         id = (TextView) findViewById(R.id.textView21);
@@ -73,15 +64,16 @@ public class Pop extends Activity {
         id.setText("" + sensor.getId().toString());
         tipo.setText(sensor.getNombreTipoSensor());
 
+        String url = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/dato/" + sensor.getId();
+
         Log.d("SAT", "poppu " + sensor.getIdTipoSensor() + sensor.getId() + sensor.getLatitud() + sensor.getLongitud());
-        getWindow().setLayout((int) (width * .85), (int) (height * .90));
+        getWindow().setLayout((int) (width * 1), (int) (height * 1));
 
-        try {
-            obtenerDato();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
+        new DescargarDatosXSensor().execute(url);
+
+
+        /*
         int i = 0;
         Number[] datoXsensor = new Number[0];
         Number[] fechas = new Number[0];
@@ -99,11 +91,11 @@ public class Pop extends Activity {
                 1041379200, // 2003
                 1072915200, // 2004
                 1104537600  // 2005
-        };*/
+        };
         // create our series from our array of nums:
         XYSeries series2 = new SimpleXYSeries(
-                Arrays.asList(fechas),
-                Arrays.asList(datoXsensor),
+         rrays.asList("fechas),
+                Arrays.asList("datoXsensor),
                 "Sensor #" + sensor.getNombreTipoSensor());
 
         mySimpleXYPlot.getGraphWidget().getGridBackgroundPaint().setColor(Color.WHITE);
@@ -157,11 +149,113 @@ public class Pop extends Activity {
             }
         });
 
-       // mySimpleXYPlot.setMarkupEnabled(false);
-
+        // mySimpleXYPlot.setMarkupEnabled(false);
+*/
 
     }
 
+    private void mostrarMensaje(final String mensaje, final int duracion) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(), mensaje, duracion).show();
+            }
+        });
+    }
+
+    private void cambiarEstadoVisual(final boolean flag) {
+        mHandler.post(new Runnable() {
+            public void run() {
+                id.setEnabled(flag);
+                tipo.setEnabled(flag);
+                mySimpleXYPlot.setEnabled(flag);
+            }
+        });
+    }
+
+    private void actualizarVista(final int progress) {
+        mHandler.post(new Runnable() {
+            public void run() {
+                if (bar != null) {
+                    bar.setProgress(progress);
+                    Log.d("SAT", "Progreso " + progress);
+                    if (bar.getMax() == bar.getProgress()) {
+                        bar.setVisibility(View.INVISIBLE);
+                    }
+                }
+            }
+        });
+    }
+
+    public class DescargarDatosXSensor extends AsyncTask<String, String, Boolean> {
+
+        HttpURLConnection connection;
+        StringBuilder finalStr = new StringBuilder();
+        BufferedReader in;
+
+        @Override
+        protected void onPreExecute() {
+            actualizarVista(1);
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+            try {
+                URL url = new URL(params[0]);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(10 * 1000);
+                connection.setReadTimeout(10 * 1000);
+                connection.connect();
+                Log.d("SAT", "Conectando a: " + url);
+                in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                actualizarVista(2);
+            } catch (Exception e) {
+                publishProgress("sin Internet");
+                Log.e("SAT", "Error: " + e.getMessage());
+                //cambiarEstadoVisual(true);
+                return null;
+            }
+
+            try {
+                publishProgress("Recibiendo Datos");
+                Log.d("SAT", "Recibiendo Datos");
+                String str;
+                while ((str = in.readLine()) != null) {
+                    finalStr.append(str);
+                    Log.d("SAT", "Recibiendo Datos...");
+                }
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                //cambiarEstadoVisual(true);
+                return null;
+            }
+            Log.d("SAT", "Resultado: " + finalStr.toString());
+            actualizarVista(3);
+            Type listType = new TypeToken<LinkedList<Dato>>() {
+            }.getType();
+            datos = new Gson().fromJson(finalStr.toString(), listType);
+            return true;
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            mostrarMensaje(values[0], Toast.LENGTH_SHORT);
+            super.onProgressUpdate(values);
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            if (aBoolean == null) {
+                mostrarMensaje("Sin Internet", Toast.LENGTH_SHORT);
+                finish();
+            }
+            actualizarVista(5);
+            super.onPostExecute(aBoolean);
+        }
+    }
 
     public void obtenerDato() throws Exception {
         StringBuilder finalStr = new StringBuilder();
