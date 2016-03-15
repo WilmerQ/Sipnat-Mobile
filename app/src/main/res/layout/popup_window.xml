@@ -45,17 +45,12 @@
         android:layout_alignParentEnd="true" />
 
     <com.androidplot.xy.XYPlot
-        android:layout_width="fill_parent"
-        android:layout_height="400dp"
         android:id="@+id/myXYPlot"
-        title="Datos del Sensor"
-        android:clickable="false"
-        android:layout_centerVertical="true"
-        android:layout_alignRight="@+id/textView23"
-        android:layout_alignEnd="@+id/textView23"
 
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+
+        renderMode="use_main_thread" />
 
     <ProgressBar
         android:layout_width="fill_parent"

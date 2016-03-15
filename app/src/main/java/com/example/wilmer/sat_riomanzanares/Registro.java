@@ -104,6 +104,8 @@ public class Registro extends AppCompatActivity implements NavigationView.OnNavi
                 }
                 if (!(confirmacion.getText().toString().equals(contrasena.getText().toString()))) {
                     mostrarMensaje("El campo Contraseña y Confirmacion no coinciden", Toast.LENGTH_SHORT);
+                    contrasena.setText("");
+                    confirmacion.setText("");
                 }
 
                 if ((!(validateEmail(email.getText().toString()))) & email.getText().length() > 0) {
@@ -116,7 +118,10 @@ public class Registro extends AppCompatActivity implements NavigationView.OnNavi
                             String url = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/Usuario/" + nombreUsuario.getText().toString().trim() + "/" + confirmacion.getText().toString().trim() + "/" + email.getText().toString().trim() + "/" + telefono.getText().toString().trim();
                             new RegistrarUsuarioAsyntask().execute(url);
                         } else {
+                            contrasena.setText("");
+                            confirmacion.setText("");
                             mostrarMensaje("El campo Contraseña y Confirmacion no coinciden", Toast.LENGTH_SHORT);
+
                         }
                     }
                 }
