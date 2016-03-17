@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -41,9 +42,12 @@ import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.TimeZone;
 
 
 public class Pop extends Activity {
@@ -54,7 +58,7 @@ public class Pop extends Activity {
     TextView tipo;
     private XYPlot mySimpleXYPlot;
     List<Dato> datos = new ArrayList<>();
-    Handler mHandler = new Handler();
+    Handler mHandler = new Handler(Looper.myLooper());
     ProgressBar bar;
 
 
@@ -82,91 +86,10 @@ public class Pop extends Activity {
         String url = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/dato/" + sensor.getId();
 
         Log.d("SAT", "poppu " + sensor.getIdTipoSensor() + sensor.getId() + sensor.getLatitud() + sensor.getLongitud());
-        getWindow().setLayout((int) (width * 1), (int) (height * 1));
-        mySimpleXYPlot = (XYPlot) findViewById(R.id.myXYPlot);
+        getWindow().setLayout((width * 1), (height * 1));
+
 
         new DescargarDatosXSensor().execute(url);
-
-
-        /*
-        int i = 0;
-        Number[] datoXsensor = new Number[0];
-        Number[] fechas = new Number[0];
-        while (datos.size() <= i) {
-            datoXsensor[i] = Integer.parseInt(datos.get(i).getDato());
-            fechas[i] = datos.get(i).getFechaRecolecion().getTime();
-        }
-
-
-
-        //Number[] numSightings = {5, 8, 9, 2, 5};
-        /*Number[] years = {
-                978307200,  // 2001
-                1009843200, // 2002
-                1041379200, // 2003
-                1072915200, // 2004
-                1104537600  // 2005
-        };
-        // create our series from our array of nums:
-        XYSeries series2 = new SimpleXYSeries(
-         rrays.asList("fechas),
-                Arrays.asList("datoXsensor),
-                "Sensor #" + sensor.getNombreTipoSensor());
-
-        mySimpleXYPlot.getGraphWidget().getGridBackgroundPaint().setColor(Color.WHITE);
-        mySimpleXYPlot.getGraphWidget().getDomainGridLinePaint().setColor(Color.BLACK);
-        //mySimpleXYPlot.getGraphWidget().getDomainGridLinePaint().setPathEffect(new DashPathEffect(new float[]{1,1}, 1));
-        //mySimpleXYPlot.getGraphWidget().getDomainOriginLinePaint().setColor(Color.BLACK);
-        //mySimpleXYPlot.getGraphWidget().getRangeOriginLinePaint().setColor(Color.BLACK);
-
-        mySimpleXYPlot.setBorderStyle(Plot.BorderStyle.SQUARE, null, null);
-        mySimpleXYPlot.getBorderPaint().setStrokeWidth(1);
-        mySimpleXYPlot.getBorderPaint().setAntiAlias(false);
-        mySimpleXYPlot.getBorderPaint().setColor(Color.WHITE);
-
-        // Create a formatter to use for drawing a series using LineAndPointRenderer:
-        //LineAndPointFormatter series1Format = new LineAndPointFormatter();
-
-        // setup our line fill paint to be a slightly transparent gradient:
-        Paint lineFill = new Paint();
-        lineFill.setAlpha(200);
-        lineFill.setShader(new LinearGradient(0, 0, 0, 250, Color.WHITE, Color.GREEN, Shader.TileMode.MIRROR));
-
-        LineAndPointFormatter formatter = new LineAndPointFormatter();
-        formatter.setFillPaint(lineFill);
-        mySimpleXYPlot.getGraphWidget().setPaddingRight(2);
-        mySimpleXYPlot.addSeries(series2, formatter);
-
-        // draw a domain tick for each year:
-        mySimpleXYPlot.setDomainStep(XYStepMode.SUBDIVIDE, fechas.length);
-
-        // customize our domain/range labels
-        mySimpleXYPlot.setDomainLabel("Date");
-        mySimpleXYPlot.setRangeLabel("DATOS");
-
-        // get rid of decimal points in our range labels:
-        mySimpleXYPlot.setRangeValueFormat(new DecimalFormat("0"));
-
-        mySimpleXYPlot.setDomainValueFormat(new Format() {
-
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-            @Override
-            public StringBuffer format(Object object, StringBuffer buffer, FieldPosition field) {
-                long timestamp = ((Number) object).longValue() * 1000;
-                Date date = new Date(timestamp);
-                return dateFormat.format(date, buffer, field);
-            }
-
-            @Override
-            public Object parseObject(String string, ParsePosition position) {
-                return null;
-            }
-        });
-
-        // mySimpleXYPlot.setMarkupEnabled(false);
-*/
-
     }
 
     private void mostrarMensaje(final String mensaje, final int duracion) {
@@ -267,23 +190,54 @@ public class Pop extends Activity {
                 mostrarMensaje("Sin Internet", Toast.LENGTH_SHORT);
                 finish();
             } else if (aBoolean) {
-                Log.d("SAT", "dato.size " + datos.size());
+                Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
+                int year = calendar.get(Calendar.YEAR);
+                int mes = calendar.get(Calendar.MONTH);
+                int dia = calendar.get(Calendar.DAY_OF_MONTH);
+                Calendar calendar1 = new GregorianCalendar(year, mes, dia);
+                Calendar tope = new GregorianCalendar(year, mes, dia + 1);
+                List<Dato> datosGraficar = new ArrayList<>();
 
-                Number[] numSightings = {5, 8, 9, 2, 5};
+                for (Dato d : datos) {
+                    if ((d.getFechaRecolecion().getTime() > calendar1.getTimeInMillis()) && (d.getFechaRecolecion().getTime() < tope.getTimeInMillis())) {
+                        Log.d("SAT", "las fechas de hoy: " + d.getDato() + "   ---- " + d.getFechaRecolecion());
+                        datosGraficar.add(d);
+                    }
+                }
 
-                // an array of years in milliseconds:
-                Number[] years = {
-                        978307200,  // 2001
-                        1009843200, // 2002
-                        1041379200, // 2003
-                        1072915200, // 2004
-                        1104537600  // 2005
-                };
+                Number[] horas = new Number[datosGraficar.size()];
+                Number[] dato = new Number[datosGraficar.size()];
+
+                int i = 0;
+                for (Dato d : datosGraficar) {
+                    horas[i] = d.getFechaRecolecion().getTime();
+                    dato[i] = Integer.parseInt(d.getDato());
+                    Log.d("SAT", "tiempo: --------" + horas[i]);
+                    Log.d("SAT", "dato: --------" + dato[i]);
+                    i++;
+                }
+
+                graficar(horas, dato);
+
+
+            }
+            actualizarVista(5);
+            super.onPostExecute(aBoolean);
+        }
+    }
+
+    private void graficar(final Number[] horas, final Number[] dato) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+
+                mySimpleXYPlot = (XYPlot) findViewById(R.id.myXYPlot);
+
                 // create our series from our array of nums:
                 XYSeries series2 = new SimpleXYSeries(
-                        Arrays.asList(years),
-                        Arrays.asList(numSightings),
-                        "Sightings in USA");
+                        Arrays.asList(horas),
+                        Arrays.asList(dato),
+                        "Datos del Sensor" + sensor.getId());
 
                 mySimpleXYPlot.getGraphWidget().getGridBackgroundPaint().setColor(Color.WHITE);
                 mySimpleXYPlot.getGraphWidget().getDomainGridLinePaint().setColor(Color.BLACK);
@@ -318,11 +272,11 @@ public class Pop extends Activity {
                 mySimpleXYPlot.addSeries(series2, formatter);
 
                 // draw a domain tick for each year:
-                mySimpleXYPlot.setDomainStep(XYStepMode.SUBDIVIDE, years.length);
+                mySimpleXYPlot.setDomainStep(XYStepMode.SUBDIVIDE, horas.length);
 
                 // customize our domain/range labels
-                mySimpleXYPlot.setDomainLabel("Year");
-                mySimpleXYPlot.setRangeLabel("# of Sightings");
+                mySimpleXYPlot.setDomainLabel("Hora");
+                mySimpleXYPlot.setRangeLabel("Dato Recolectado");
 
                 // get rid of decimal points in our range labels:
                 mySimpleXYPlot.setRangeValueFormat(new DecimalFormat("0"));
@@ -332,7 +286,7 @@ public class Pop extends Activity {
                     // create a simple date format that draws on the year portion of our timestamp.
                     // see http://download.oracle.com/javase/1.4.2/docs/api/java/text/SimpleDateFormat.html
                     // for a full description of SimpleDateFormat.
-                    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy");
+                    private SimpleDateFormat dateFormat = new SimpleDateFormat(" aaaa - MM - DD HH : mm");
 
                     @Override
                     public StringBuffer format(Object obj, StringBuffer toAppendTo, FieldPosition pos) {
@@ -352,10 +306,9 @@ public class Pop extends Activity {
                 });
 
 
+                mySimpleXYPlot.redraw();
             }
-            actualizarVista(5);
-            super.onPostExecute(aBoolean);
-        }
+        });
     }
 
 }

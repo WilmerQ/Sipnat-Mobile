@@ -10,9 +10,8 @@ import android.content.Intent;
 public class autoInicio extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        Intent i = new Intent(context,alerta.class);
+        Intent i = new Intent(context, alerta.class);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startService(i);
-
     }
 }
