@@ -3,11 +3,8 @@ package com.example.wilmer.sat_riomanzanares;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.Editable;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -23,29 +20,81 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 
+/**
+ * Clase cambiar contraseña
+ * </p>
+ * permite realizar todas las operaciones para cambiar la contraseña del usuario.
+ * <br>
+ * caso de uso:
+ *
+ * @author Wilmer
+ * @see android.support.v7.app.AppCompatActivity
+ */
 public class cambiarContrasena extends AppCompatActivity {
 
+    /**
+     * EditText donde el usuario digita la contraseña actual
+     */
     EditText actual;
+    /**
+     * EditText donde el usuario digita la contraseña nueva
+     */
     EditText nueva;
+    /**
+     * EditText donde el usuario digita la confirmacion de la contraseña
+     */
     EditText confirmacion;
+    /**
+     * Button Guardar
+     */
     Button Guardar;
+    /**
+     * Handler
+     */
     private Handler mHandler = new Handler();
+    /**
+     * Objeto tipo usuario, el usuario logueado actualmente en la aplicacion.
+     */
     Usuario usuarioLogueado;
 
     @Override
-        protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cambiar_contrasena);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        /**
+         * asignar a usuario logueado un objeto obtenido por medio de intent.
+         */
         usuarioLogueado = (Usuario) getIntent().getExtras().getSerializable("usuarioDatos");
 
+        /**
+         * se conecta la variable actual con elemento correspondiente en el layout
+         */
         actual = (EditText) findViewById(R.id.editTexActual);
+        /**
+         * se conecta la variable nueva con elemento correspondiente en el layout
+         */
         nueva = (EditText) findViewById(R.id.editTextNueva);
+        /**
+         * se conecta la variable confirmacion con elemento correspondiente en el layout
+         */
         confirmacion = (EditText) findViewById(R.id.editTextConfirma);
+        /**
+         * se conecta la variable guardar con elemento correspondiente en el layout
+         */
         Guardar = (Button) findViewById(R.id.guardar);
 
+
+        /**
+         * Guardar.setOnClickListener
+         * evento del boton guardar donde se realizara:
+         *     1. los siguientes campos contengas datos: nueva, actual,confirmacion.
+         *     2. nueva contraseña debe coincidir con la contraseña actual del usuario
+         *     3. se valida que el campo nueva y confirmacion sean identicos.
+         *     4. se invoca el metodo ModificarContra como parametro el objeto usuario logueado y confirmacion.
+         */
         Guardar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -74,6 +123,16 @@ public class cambiarContrasena extends AppCompatActivity {
 
     }
 
+
+    /**
+     * ModificarContra
+     * <br>
+     * metodo que recibe el usuario actual y la nueva contraseña y envia la informacion al servidor para que realice el cambio de contraseña
+     *
+     * @param usuarioLogueado
+     * @param nueva
+     * @throws Exception
+     */
     private void ModificarContra(Usuario usuarioLogueado, String nueva) throws Exception {
         StringBuilder finalStr = new StringBuilder();
         URL url = new URL("http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/CambioContra/" + usuarioLogueado.getNombreUsuario() + "/" + nueva.trim());
@@ -114,6 +173,14 @@ public class cambiarContrasena extends AppCompatActivity {
         }
     }
 
+    /**
+     * mostrarMensaje:
+     * <br>
+     * metodo en el cual a traves del metodo post de un Handler (mHandler) se muestra un toast en pantalla.
+     *
+     * @param mensaje
+     * @param duracion
+     */
     private void mostrarMensaje(final String mensaje, final int duracion) {
         mHandler.post(new Runnable() {
             @Override

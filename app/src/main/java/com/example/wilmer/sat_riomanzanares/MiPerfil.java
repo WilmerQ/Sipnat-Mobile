@@ -26,16 +26,45 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 
+/**
+ * clase MiPerfil
+ * <br>
+ * clase encargada de tramitar la visualizacion de los datos personales y la edicion de estos.
+ * los EditText que contienen la informacion estan desabilitados, al momento de dar click en el boton modificiar habilitan su edicion.
+ *
+ * @see android.content.Context
+ * @see android.support.v7.app.AppCompatActivity
+ * @see NavigationView
+ * @see android.support.design.widget.NavigationView.OnNavigationItemSelectedListener
+ */
 public class MiPerfil extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    /**
+     * EditText con el Correo.
+     */
     EditText correo;
+    /**
+     * EditText que contiene el Telefono del usuario.
+     */
     EditText telefono;
+    /**
+     * el Nombre usuario.
+     */
     TextView nombreUsuario;
+    /**
+     * Button Modificar datos.
+     */
     Button modificarDatos;
+    /**
+     * Button Cambiar contraseña.
+     */
     Button cambiarContra;
     private Handler mHandler = new Handler();
 
+    /**
+     * The Usuario logueado.
+     */
     Usuario usuarioLogueado;
 
     @Override
@@ -149,6 +178,15 @@ public class MiPerfil extends AppCompatActivity
         return true;
     }
 
+    /**
+     * Modificar Dato
+     * <br>
+     * metodo encargado de recoger los datos editados desde la aplicacion y guardar los cambios hasta el seridor a traves del conmuso de un web service.
+     * @param usuarioLogueado
+     * @param correo
+     * @param telefono
+     * @throws Exception
+     */
     private void ModificarDato(Usuario usuarioLogueado, String correo, String telefono) throws Exception {
         StringBuilder finalStr = new StringBuilder();
         URL url = new URL("http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/CambioEmail/" + usuarioLogueado.getNombreUsuario() + "/" + correo + "/" + telefono);

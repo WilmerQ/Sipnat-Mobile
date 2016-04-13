@@ -11,11 +11,22 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * clase Md5
+ * <p/>
+ * utilizada para cifrar Textos.
  *
- * @author juvinao
+ * @author Wilmer
  */
 public class Md5 {
 
+    /**
+     * getEncoddedString
+     * codifica bajo el algoritmo de encriptacion md5
+     * <p/>
+     *
+     * @param texto
+     * @return encodded
+     */
     public static String getEncoddedString(String texto) {
         try {
             MessageDigest digest = MessageDigest.getInstance("MD5");
@@ -30,6 +41,14 @@ public class Md5 {
         }
     }
 
+    /**
+     * toHexadecimal
+     * funcion auxliar utilizada en el algoritmo md5
+     * <p/>
+     *
+     * @param datos
+     * @return resultado - String con el resultado
+     */
     private static String toHexadecimal(byte[] datos) {
         String resultado = "";
         ByteArrayInputStream input = new ByteArrayInputStream(datos);
@@ -55,10 +74,5 @@ public class Md5 {
                     resultado.substring(0, resultado.length() - 2) + resultado.charAt(resultado.length() - 1);
         }
         return resultado;
-    }
-    
-    public static void main(String[] args){
-        String pas = "39004995";
-        System.out.println(Md5.getEncoddedString(pas));
     }
 }

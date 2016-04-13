@@ -4,21 +4,18 @@
 
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-
-    <!--
-         The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
-         Google Maps Android API v2, but you must specify either coarse or fine
-         location permissions for the 'MyLocation' functionality. 
-    -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <!-- [GCM] -->
     <permission
         android:name="com.example.wilmer.sat_riomanzanares.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
+
     <uses-permission android:name="com.example.wilmer.sat_riomanzanares.permission.C2D_MESSAGE" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
 
 
     <application
@@ -62,11 +59,14 @@
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.popup" />
 
+        <activity
+            android:name=".PopAlerta"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.popup" />
 
-        <service android:name=".alerta" />
-
+        <service android:name=".noUsados.alerta" />
         <receiver
-            android:name=".autoInicio"
+            android:name=".noUsados.autoInicio"
             android:enabled="true"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
             <intent-filter>
@@ -97,6 +97,20 @@
             android:label="@string/title_activity_cambiar_contrasena"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
+
+
+        <receiver
+            android:name=".GcmBroadcastReceiver"
+            android:exported="true"
+            android:permission="com.google.android.c2dm.permission.SEND">
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <category android:name="com.example.wilmer.sat_riomanzanares" />
+            </intent-filter>
+        </receiver>
+
+        <service android:name=".GcmIntentService" />
+
     </application>
 
 </manifest>

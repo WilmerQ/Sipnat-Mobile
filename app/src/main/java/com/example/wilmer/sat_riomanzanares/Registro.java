@@ -26,17 +26,51 @@ import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Clase Registro
+ * <br>
+ * Clase encargada de recoelectar los datos del usuario y enviarlos al servidor para su registro.
+ *
+ * @author Wilmer
+ * @see android.support.v7.app.AppCompatActivity
+ * @see android.support.design.widget.NavigationView.OnNavigationItemSelectedListener
+ * @see NavigationView
+ */
 public class Registro extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
 
+    /**
+     * EditText donde se digitara el nombre de usuario.
+     */
     EditText nombreUsuario;
+    /**
+     * EditText donde se digitara el correo.
+     */
     EditText email;
+    /**
+     * EditText donde se digitara el numero de tel.
+     */
     EditText telefono;
+    /**
+     * EditText donde se digita la Contraseña
+     */
     EditText contrasena;
+    /**
+     * EditText donde se digitara la confirmacion de la contraseña
+     */
     EditText confirmacion;
+    /**
+     * Button Registrar encargado de realizar la accion..
+     */
     Button registrar;
+    /**
+     * ProgressBar encargada de mostrar el desarrrollo.
+     */
     ProgressBar progreso;
 
+    /**
+     * Handler utilizado para monstrar un mesnsaje Toast.
+     */
     private Handler mHandler = new Handler();
 
     @Override
@@ -182,6 +216,11 @@ public class Registro extends AppCompatActivity implements NavigationView.OnNavi
         return true;
     }
 
+    /**
+     * metodo utilizado para mostrar un toast a traves de un Handler.
+     * @param mensaje
+     * @param duracion
+     */
     private void mostrarMensaje(final String mensaje, final int duracion) {
         mHandler.post(new Runnable() {
             @Override
@@ -191,6 +230,12 @@ public class Registro extends AppCompatActivity implements NavigationView.OnNavi
         });
     }
 
+    /**
+     * funcion utilizda para validar la estructuta del email ingresado por el usuario.
+     * contiene el expresion regular de validar email.
+     * @param email
+     * @return matcher
+     */
     public static boolean validateEmail(String email) {
         String PATTERN_EMAIL = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
                 + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
@@ -204,6 +249,14 @@ public class Registro extends AppCompatActivity implements NavigationView.OnNavi
 
     }
 
+    /**
+     * Clase RegistrarUsuarioAsyntask
+     * <br>
+     *  clase que implementa AsyncTask para enviar toda la informacion al servidor.
+     *  @author Wilmer
+     *  @see android.os.AsyncTask
+     *
+     */
     public class RegistrarUsuarioAsyntask extends AsyncTask<String, String, Boolean> {
 
         HttpURLConnection connection;
@@ -289,6 +342,10 @@ public class Registro extends AppCompatActivity implements NavigationView.OnNavi
 
     }
 
+    /**
+     * metodo encargado para actulizar el progreso de la barra de progreso.
+     * @param progress
+     */
     private void actualizarVista(final int progress) {
         mHandler.post(new Runnable() {
             public void run() {
@@ -300,6 +357,10 @@ public class Registro extends AppCompatActivity implements NavigationView.OnNavi
         });
     }
 
+    /**
+     * metodo encargado de activar o desactivar ciertos elementos de la interfaz visual dependiendo del valor de la entrada del parametro.
+     * @param flag
+     */
     private void cambiarEstadoVisual(final boolean flag) {
         mHandler.post(new Runnable() {
             public void run() {

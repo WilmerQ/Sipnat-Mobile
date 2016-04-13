@@ -36,13 +36,38 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Clase seleccionProyecto
+ * <br>
+ * clase donde podra seleccionar un item(Proyecto) de una ListView(listaProyectos)
+ *
+ * @author Wilmer
+ * @see android.content.Context
+ * @see android.support.v7.app.AppCompatActivity
+ * @see android.support.design.widget.NavigationView.OnNavigationItemSelectedListener
+ */
 public class selecionProyecto extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
 
+    /**
+     * listaProyectos es un ListView que mostrara los proyectos.
+     */
     ListView listaProyectos;
+    /**
+     * lProyectos es una List<Proyecto> que almacenas los proyectos
+     */
     List<Proyecto> lProyectos = new ArrayList<>();
+    /**
+     * List<String> es una lista de String utilizada de interfaz
+     */
     List<String> listaProyectosTemp = new ArrayList<>();
+    /**
+     * handler
+     */
     Handler mHandler = new Handler();
+    /**
+     * ProgressBar barra de progreso utilizado para mostrar la carga
+     */
     ProgressBar bar;
 
 
@@ -155,6 +180,13 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
         return true;
     }
 
+    /**
+     * metodo utilizado para mostrar un mensaje en pantalla
+     * utilizando un elemento Toast
+     *
+     * @param mensaje
+     * @param duracion
+     */
     private void mostrarMensaje(final String mensaje, final int duracion) {
         mHandler.post(new Runnable() {
             @Override
@@ -164,6 +196,12 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
         });
     }
 
+
+    /**
+     * metodo utilizado para activar o desactivar ciertos elementos de la view depende del valor del parmetro.
+     *
+     * @param flag
+     */
     private void cambiarEstadoVisual(final boolean flag) {
         mHandler.post(new Runnable() {
             public void run() {
@@ -172,6 +210,11 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
         });
     }
 
+    /**
+     * metodo encargado de actualizar la barra de progreso bar
+     *
+     * @param progress
+     */
     private void actualizarVista(final int progress) {
         mHandler.post(new Runnable() {
             public void run() {
@@ -186,7 +229,16 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
         });
     }
 
+
+    /**
+     * DescargarProyectos
+     * <br>
+     * clase extendida de AsyncTask encargada de conectar al servidor y descargar la informacion requerida.
+     *
+     * @see android.os.AsyncTask
+     */
     public class DescargarProyectos extends AsyncTask<String, String, Boolean> {
+
 
         HttpURLConnection connection;
         StringBuilder finalStr = new StringBuilder();

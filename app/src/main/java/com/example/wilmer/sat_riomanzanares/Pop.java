@@ -50,15 +50,47 @@ import java.util.List;
 import java.util.TimeZone;
 
 
+/**
+ * Clase Pop
+ * <br>
+ * clase encargada de montrar una grfica con los datos obtenidos por un sensor en especifico.
+ *
+ * @author Wilmer
+ * @see android.app.Activity
+ * @see android.content.Context
+ */
 public class Pop extends Activity {
 
-
+    /**
+     * objeto Sensor
+     */
     Sensor sensor;
+
+    /**
+     * The Id.
+     */
     TextView id;
+    /**
+     * The Tipo.
+     */
     TextView tipo;
+    /**
+     * XYPlot encargado de graficar los datos
+     * <br>
+     * ver tambien androidplot
+     */
     private XYPlot mySimpleXYPlot;
+    /**
+     * List<Dato> lista de datos donde se guardaran los datos para graficar.
+     */
     List<Dato> datos = new ArrayList<>();
+    /**
+     * Handler utilizado para motrar mensaje en pantalla a traves de un Toast
+     */
     Handler mHandler = new Handler(Looper.myLooper());
+    /**
+     * ProgressBar utilizada para mostrar el progreso.
+     */
     ProgressBar bar;
 
 
@@ -73,7 +105,7 @@ public class Pop extends Activity {
         int height = metrics.heightPixels;
 
         bar = (ProgressBar) findViewById(R.id.progressBarPopWindow);
-        bar.setVisibility(View.VISIBLE);
+        //bar.setVisibility(View.VISIBLE);
         bar.setMax(5);
 
         sensor = (Sensor) getIntent().getExtras().getSerializable("sensorSeleccionado");
@@ -92,6 +124,12 @@ public class Pop extends Activity {
         new DescargarDatosXSensor().execute(url);
     }
 
+    /**
+     * metodo utilizado para mostrar un toast a traves de un Handler.
+     *
+     * @param mensaje
+     * @param duracion
+     */
     private void mostrarMensaje(final String mensaje, final int duracion) {
         mHandler.post(new Runnable() {
             @Override
@@ -101,16 +139,11 @@ public class Pop extends Activity {
         });
     }
 
-    private void cambiarEstadoVisual(final boolean flag) {
-        mHandler.post(new Runnable() {
-            public void run() {
-                id.setEnabled(flag);
-                tipo.setEnabled(flag);
-                mySimpleXYPlot.setEnabled(flag);
-            }
-        });
-    }
-
+    /**
+     * metodo encargado para actulizar el progreso de la barra de progreso.
+     *
+     * @param progress
+     */
     private void actualizarVista(final int progress) {
         mHandler.post(new Runnable() {
             public void run() {
@@ -125,10 +158,27 @@ public class Pop extends Activity {
         });
     }
 
+    /**
+     * Clase DescargarDatosXSensor
+     * <br>
+     * clase encargada de descargar los datos de un sensor especifico para mostrar en la pantalla implementando el AsyncTask
+     *
+     * @author Wilmer
+     * @see android.os.AsyncTask
+     */
     public class DescargarDatosXSensor extends AsyncTask<String, String, Boolean> {
 
+        /**
+         * The Connection.
+         */
         HttpURLConnection connection;
+        /**
+         * The Final str.
+         */
         StringBuilder finalStr = new StringBuilder();
+        /**
+         * The In.
+         */
         BufferedReader in;
 
         @Override
@@ -205,27 +255,42 @@ public class Pop extends Activity {
                     }
                 }
 
+                if (datosGraficar.isEmpty()) {
+                    mostrarMensaje("sin datos para mostrar", Toast.LENGTH_SHORT);
+                    finish();
+                }
                 Number[] horas = new Number[datosGraficar.size()];
                 Number[] dato = new Number[datosGraficar.size()];
-
                 int i = 0;
                 for (Dato d : datosGraficar) {
+                    //dato[i] = Integer.parseInt(d.getDato());
+                    //long diferenciaEn_ms = d.getFechaRecolecion().getTime() - calendar1.getTime().getTime();
+                    //Date temp = new Date(diferenciaEn_ms);
                     horas[i] = d.getFechaRecolecion().getTime();
-                    dato[i] = Integer.parseInt(d.getDato());
+                    //horas[i] = d.getFechaRecolecion().getTime();
+                    dato[i] = Double.parseDouble(d.getDato());
+                    // Log.d("SAT", "DAtes: --------" + temp);
                     Log.d("SAT", "tiempo: --------" + horas[i]);
                     Log.d("SAT", "dato: --------" + dato[i]);
                     i++;
                 }
-
                 graficar(horas, dato);
-
-
             }
             actualizarVista(5);
             super.onPostExecute(aBoolean);
         }
     }
 
+    /**
+     * metodo Graficar
+     * <br>
+     * utilizado para graficar los datos con respecto al tiempo obtenidos por un sensor.
+     * se implemtenta la libreria androidplot
+     * <a href="http://androidplot.com/">pagina oficial androidplot</a>
+     *
+     * @param horas
+     * @param dato
+     */
     private void graficar(final Number[] horas, final Number[] dato) {
         mHandler.post(new Runnable() {
             @Override
@@ -263,7 +328,7 @@ public class Pop extends Activity {
                 // ugly usage of LinearGradient. unfortunately there's no way to determine the actual size of
                 // a View from within onCreate.  one alternative is to specify a dimension in resources
                 // and use that accordingly.  at least then the values can be customized for the device type and orientation.
-                lineFill.setShader(new LinearGradient(0, 0, 200, 200, Color.WHITE, Color.GREEN, Shader.TileMode.CLAMP));
+                lineFill.setShader(new LinearGradient(0, 0, 200, 200, Color.WHITE, Color.TRANSPARENT, Shader.TileMode.CLAMP));
 
                 LineAndPointFormatter formatter =
                         new LineAndPointFormatter(Color.rgb(0, 0, 0), Color.BLUE, Color.RED, null);
@@ -286,7 +351,8 @@ public class Pop extends Activity {
                     // create a simple date format that draws on the year portion of our timestamp.
                     // see http://download.oracle.com/javase/1.4.2/docs/api/java/text/SimpleDateFormat.html
                     // for a full description of SimpleDateFormat.
-                    private SimpleDateFormat dateFormat = new SimpleDateFormat(" aaaa - MM - DD HH : mm");
+                    //aaaa - MM - DD HH : mm
+                    private SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
 
                     @Override
                     public StringBuffer format(Object obj, StringBuffer toAppendTo, FieldPosition pos) {

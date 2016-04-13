@@ -1,6 +1,4 @@
-package com.example.wilmer.sat_riomanzanares;
-
-import java.io.InputStream;
+package com.example.wilmer.sat_riomanzanares.noUsados;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -8,6 +6,10 @@ import android.graphics.Movie;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.view.View;
+
+import com.example.wilmer.sat_riomanzanares.R;
+
+import java.io.InputStream;
 
 public class GifView extends View{
 

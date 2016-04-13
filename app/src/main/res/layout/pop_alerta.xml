@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ef5350">
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+
+        <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+
+
+            <TextView
+                android:id="@+id/textView7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:text="Alerta"
+                android:textColor="#000000"
+                android:textIsSelectable="false"
+                android:textSize="24dp"
+                android:textStyle="bold|italic" />
+
+            <TextView
+                android:id="@+id/textView26"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/textView7"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="15dp"
+                android:text="Proyecto"
+                android:textColor="#000000"
+                android:textIsSelectable="false"
+                android:textSize="22dp"
+                android:textStyle="bold|italic" />
+
+            <TextView
+                android:id="@+id/textView27"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/textView26"
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:text="se te quema la casa mk"
+                android:textColor="#000000"
+                android:textIsSelectable="false"
+                android:textSize="20dp" />
+
+            <TextView
+                android:id="@+id/textView28"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/textView32"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="15dp"
+                android:text="Descripción"
+                android:textColor="#000000"
+                android:textIsSelectable="false"
+                android:textSize="22dp"
+                android:textStyle="bold|italic" />
+
+            <TextView
+                android:id="@+id/textView29"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentStart="true"
+                android:layout_below="@+id/textView28"
+                android:gravity="center"
+                android:text="que mas descripcion... se te esta quemando la casa marica"
+                android:textColor="#000000"
+                android:textIsSelectable="false"
+                android:textSize="20dp" />
+
+            <TextView
+                android:id="@+id/textView30"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/textView27"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="15dp"
+                android:text="Nivel"
+                android:textColor="#000000"
+                android:textIsSelectable="false"
+                android:textSize="22dp"
+                android:textStyle="bold|italic" />
+
+            <TextView
+                android:id="@+id/textView32"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/textView30"
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:text="nivel de la alerta"
+                android:textColor="#000000"
+                android:textIsSelectable="false"
+                android:textSize="20dp" />
+
+
+            <TextView
+                android:id="@+id/textView31"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/textView29"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="15dp"
+                android:text="Fecha y Hora"
+                android:textColor="#000000"
+                android:textIsSelectable="false"
+                android:textSize="22dp"
+                android:textStyle="bold|italic" />
+
+            <TextView
+                android:id="@+id/textView33"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="fecha y hora...."
+                android:textColor="#000000"
+                android:textIsSelectable="false"
+                android:textSize="20dp"
+                android:layout_below="@+id/textView31"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true" />
+
+
+        </RelativeLayout>
+    </ScrollView>
+
+</RelativeLayout>

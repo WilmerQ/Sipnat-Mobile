@@ -29,15 +29,43 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+
+/**
+ * Loguin
+ * </p>
+ * clase encargada de tramitar el inicio de sesion.
+ *
+ * @author Wilmer
+ * @see android.support.v7.app.AppCompatActivity
+ * @see android.support.design.widget.NavigationView.OnNavigationItemSelectedListener
+ * @see NavigationView
+ */
 public class Loguin extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
+    /**
+     * EditText donde se digitara el nombre de usuario
+     */
     private EditText nombreUsuario;
+    /**
+     * EditText donde se digitara la contraseña
+     */
     private EditText contrasena;
+    /**
+     * Button entrar encargado de ejecutar la accion en la actividad
+     */
     private Button btnEntrar;
+    /**
+     * Handler utilizado para mostrar un toast
+     */
     private Handler mHandler = new Handler(), mHandler1 = new Handler();
+    /**
+     * progreso es una ProgressBar encargada de mostrar el proceso de decarga de los datos.
+     */
     ProgressBar progreso;
 
-
+    /**
+     * Intent encargado de lanzar una nueva actividad en dicho momento.
+     */
     Intent i;
 
     @Override
@@ -153,6 +181,14 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
         return true;
     }
 
+
+    /**
+     * Se encarga de invocar un Handler ya declarado y en su Post
+     * ejecurtar un Toast
+     *
+     * @param mensaje  cadena de texto de tipo String que sera el mensaje
+     * @param duracion Duracion de la notificacion.
+     */
     private void mostrarMensaje(final String mensaje, final int duracion) {
         mHandler.post(new Runnable() {
             @Override
@@ -162,6 +198,11 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
         });
     }
 
+    /**
+     * metodo encargado de activar o desactivar ciertos elementos de la interfaz visual dependiendo del valor de la entrada del parametro.
+     *
+     * @param flag
+     */
     private void cambiarEstadoVisual(final boolean flag) {
         mHandler.post(new Runnable() {
             public void run() {
@@ -172,6 +213,10 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
         });
     }
 
+    /**
+     * metodo encargado de actualizar la barra de progreso en la actividad.
+     * @param progress
+     */
     private void actualizarVista(final int progress) {
         mHandler1.post(new Runnable() {
             public void run() {
@@ -183,20 +228,34 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
         });
     }
 
-    private void setProgresoIndeterminado(final boolean flag) {
-        mHandler.post(new Runnable() {
-            public void run() {
-                progreso.setIndeterminate(flag);
-            }
-        });
-    }
-
+    /**
+     * clase Descagar
+     * <br>
+     * clase encarga de implementar el AsyncTask interfaz optimizada para comunicacion de datos desde servidor a el dispositivo.
+     * @author Wilmer
+     * @see android.os.AsyncTask
+     */
     public class Descargar extends AsyncTask<String, String, Boolean> {
 
+        /**
+         * HttpURLConnection objeto connection que establece la comunicacion.
+         */
         HttpURLConnection connection;
+        /**
+         * StringBuilder encargada de obtener la cadena de texto descargada desde la comunicacion.
+         */
         StringBuilder finalStr = new StringBuilder();
+        /**
+         * BufferedReader informacion recibida sin ningun tipo de formato
+         */
         BufferedReader in;
+        /**
+         * The Gson.
+         */
         Gson gson = new Gson();
+        /**
+         * The Usuario.
+         */
         Usuario usuario;
 
         @Override
