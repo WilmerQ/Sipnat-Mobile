@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,6 +25,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.ProgressBar;
@@ -33,8 +35,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.wilmer.sat_riomanzanares.SqLite.parametroBD;
+import com.example.wilmer.sat_riomanzanares.modelo.DetalleZona;
 import com.example.wilmer.sat_riomanzanares.modelo.Proyecto;
 import com.example.wilmer.sat_riomanzanares.modelo.Sensor;
+import com.example.wilmer.sat_riomanzanares.modelo.Zona;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
@@ -47,6 +51,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -76,16 +81,19 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
         OnMapReadyCallback {
 
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+    Boolean zonaAfectada = true;
     MapFragment mapFragment;
     Spinner zona;
     String[] Zonas = {"Zona Afectada", "Zona Localizacion de sonseres"};
     Proyecto proyecto;
     List<Sensor> ListaSensoresXProyecto = new ArrayList<>();
+    List<Zona> listaZonas = new ArrayList<>();
     TextView nombreProyecto;
     ProgressBar bar;
     Handler mHandler = new Handler();
     Handler handler1;
     Switch notificaciones;
+
 
     private static final String TAG = "SAT";
     GoogleCloudMessaging gcm;
@@ -119,8 +127,32 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
         cambiarEstadoVisual(false);
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.fragmentVerMapa);
 
-        String url = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/SensorMovil/" + proyecto.getId();
-        new DescargarSensorXProyecto().execute(url);
+        // String url = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/SensorMovil/" + proyecto.getId();
+        // new DescargarSensorXProyecto().execute(url);
+
+
+        zona.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.d("SAT", "item selecionado " + parent.getSelectedItem());
+                if (parent.getSelectedItem().toString().equals("Zona Afectada")) {
+                    String url1 = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/ZonaAfectada/" + proyecto.getId();
+                    new DescargarZonasAfectasxProyecto().execute(url1);
+                    zonaAfectada = true;
+                }
+
+                if (parent.getSelectedItem().toString().equals("Zona Localizacion de sonseres")) {
+                    String url = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/SensorMovil/" + proyecto.getId();
+                    new DescargarSensorXProyecto().execute(url);
+                    zonaAfectada = false;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
         notificaciones = (Switch) findViewById(R.id.switch1);
 
@@ -224,47 +256,118 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
         return true;
     }
 
+    public LatLng centroZona(Zona z) {
+        List<LatLng> latLngs = new ArrayList<>();
+
+        for (DetalleZona dz : z.getDetalleZonas()) {
+            latLngs.add(new LatLng(Double.parseDouble(dz.getLatitud()), Double.parseDouble(dz.getLongitud())));
+        }
+        //Polygon p = advancedModel.getPolygons().get(0);
+
+
+        //latitud menor
+        LatLng latmenor = latLngs.get(0);
+        LatLng latMayor = latLngs.get(0);
+        for (int i = 0; i < latLngs.size(); i++) {
+            if (latLngs.get(i).latitude < latmenor.latitude) {
+                latmenor = latLngs.get(i);
+            }
+            if (latLngs.get(i).latitude > latMayor.latitude) {
+                latMayor = latLngs.get(i);
+            }
+        }
+
+        //longitud menor
+        LatLng lonmenor = latLngs.get(0);
+        LatLng lonMayor = latLngs.get(0);
+        for (int i = 0; i < latLngs.size(); i++) {
+            if (latLngs.get(i).longitude < lonmenor.longitude) {
+                lonmenor = latLngs.get(i);
+            }
+            if (latLngs.get(i).longitude > lonMayor.longitude) {
+                lonMayor = latLngs.get(i);
+            }
+        }
+
+        double dLat = latMayor.latitude - latmenor.latitude;
+        double dLng = lonMayor.longitude - lonmenor.longitude;
+        double sindLat = dLat / 2;
+        double sindLng = dLng / 2;
+
+        LatLng coord1 = new LatLng(sindLat + latmenor.latitude, sindLng + lonmenor.longitude);
+        //advancedModel.addOverlay(new Marker(coord1, zonaAfectada.getNombreDelaZona()));
+        return coord1;
+    }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
-        if (!(ListaSensoresXProyecto.size() == 0)) {
-            actualizarVista(10);
-            for (Sensor s : ListaSensoresXProyecto) {
-                Log.d("SAT", "Lat Lon" + s.getLatitud() + "   " + s.getLongitud());
-                Double lat = Double.parseDouble(s.getLatitud());
-                Double lon = Double.parseDouble(s.getLongitud());
-                LatLng latLng1 = new LatLng(lat, lon);
-                Bitmap bitmap = DownloadImage("http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/imagenServlet?id=" + s.getIdTipoSensor());
-                Bitmap temp = Bitmap.createScaledBitmap(bitmap, 128, 128, false);
-                BitmapDescriptor descriptor = BitmapDescriptorFactory.fromBitmap(temp);
+        googleMap.clear();
+        googleMap.getUiSettings().setMapToolbarEnabled(true);
+        googleMap.getUiSettings().setRotateGesturesEnabled(false);
 
-                MarkerOptions markerOptions = new MarkerOptions().position(latLng1).icon(descriptor);
-                googleMap.addMarker(markerOptions);
-            }
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Double.parseDouble(ListaSensoresXProyecto.get(0).getLatitud()),
-                    Double.parseDouble(ListaSensoresXProyecto.get(0).getLongitud())), 13));
 
-            googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-                @Override
-                public boolean onMarkerClick(Marker marker) {
-                    for (Sensor s : ListaSensoresXProyecto) {
-                        LatLng temp = new LatLng(Double.parseDouble(s.getLatitud()), Double.parseDouble(s.getLongitud()));
-                        if (temp.equals(marker.getPosition())) {
-                            Intent i = new Intent(getApplicationContext(), Pop.class);
-                            i.putExtra("sensorSeleccionado", s);
-                            startActivity(i);
-                            return true;
-                        }
+        if (zonaAfectada) {
+            if (!(listaZonas.size() == 0)) {
+                actualizarVista(10);
+                for (Zona z : listaZonas) {
+
+                    PolygonOptions polygonOptions = new PolygonOptions().visible(true).clickable(false).fillColor(Color.argb(140, 255, 0, 0)).strokeWidth(5);
+                    Log.d("SAT", "color" + polygonOptions.getFillColor());
+
+                    for (DetalleZona detalleZona : z.getDetalleZonas()) {
+                        polygonOptions.add(new LatLng(Double.parseDouble(detalleZona.getLatitud()), Double.parseDouble(detalleZona.getLongitud())));
                     }
-                    Log.d("SAT", "entrada a setOnMarkerClickListener");
-
-
-                    return false;
+                    googleMap.addPolygon(polygonOptions);
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(centroZona(z), 14));
                 }
-            });
+
+
+            }
+
+
         } else {
-            Log.d("SAT", "esta aqui");
+            if (!(ListaSensoresXProyecto.size() == 0)) {
+                actualizarVista(10);
+                for (Sensor s : ListaSensoresXProyecto) {
+                    Log.d("SAT", "Lat Lon" + s.getLatitud() + "   " + s.getLongitud());
+                    Double lat = Double.parseDouble(s.getLatitud());
+                    Double lon = Double.parseDouble(s.getLongitud());
+                    LatLng latLng1 = new LatLng(lat, lon);
+                    Bitmap bitmap = DownloadImage("http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/imagenServlet?id=" + s.getIdTipoSensor());
+                    Bitmap temp = Bitmap.createScaledBitmap(bitmap, 128, 128, false);
+                    BitmapDescriptor descriptor = BitmapDescriptorFactory.fromBitmap(temp);
+
+                    MarkerOptions markerOptions = new MarkerOptions().position(latLng1).icon(descriptor);
+                    googleMap.addMarker(markerOptions);
+                }
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Double.parseDouble(ListaSensoresXProyecto.get(0).getLatitud()),
+                        Double.parseDouble(ListaSensoresXProyecto.get(0).getLongitud())), 13));
+
+                googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                    @Override
+                    public boolean onMarkerClick(Marker marker) {
+                        for (Sensor s : ListaSensoresXProyecto) {
+                            LatLng temp = new LatLng(Double.parseDouble(s.getLatitud()), Double.parseDouble(s.getLongitud()));
+                            if (temp.equals(marker.getPosition())) {
+                                Intent i = new Intent(getApplicationContext(), Pop.class);
+                                i.putExtra("sensorSeleccionado", s);
+                                startActivity(i);
+                                return true;
+                            }
+                        }
+                        Log.d("SAT", "entrada a setOnMarkerClickListener");
+
+
+                        return false;
+                    }
+                });
+            } else {
+                Log.d("SAT", "esta aqui");
+            }
         }
+
+
     }
 
     private Bitmap DownloadImage(String imageHttpAddress) {
@@ -377,6 +480,78 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
             Type listType = new TypeToken<LinkedList<Sensor>>() {
             }.getType();
             ListaSensoresXProyecto = new Gson().fromJson(finalStr.toString(), listType);
+            return true;
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            mostrarMensaje(values[0], Toast.LENGTH_SHORT);
+            super.onProgressUpdate(values);
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            if (aBoolean == null) {
+                mostrarMensaje("Error de conexion - Verifique la conexion", Toast.LENGTH_LONG);
+                finish();
+            } else if (aBoolean) {
+                cambiarEstadoVisual(true);
+                actualizarVista(5);
+            }
+            super.onPostExecute(aBoolean);
+        }
+    }
+
+    public class DescargarZonasAfectasxProyecto extends AsyncTask<String, String, Boolean> {
+
+        HttpURLConnection connection;
+        StringBuilder finalStr = new StringBuilder();
+        BufferedReader in;
+
+        @Override
+        protected void onPreExecute() {
+            actualizarVista(2);
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+            try {
+                URL url = new URL(params[0]);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(10 * 1000);
+                connection.setReadTimeout(10 * 1000);
+                connection.connect();
+                Log.d("SAT", "Conectando a: " + url);
+                in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                actualizarVista(2);
+            } catch (Exception e) {
+                publishProgress("sin Internet");
+                Log.e("SAT", "Error: " + e.getMessage());
+                //               cambiarEstadoVisual(true);
+                return null;
+            }
+
+            try {
+                publishProgress("Recibiendo Sensores del proyecto");
+                Log.d("SAT", "Recibiendo Datos");
+                String str;
+                while ((str = in.readLine()) != null) {
+                    finalStr.append(str);
+                    Log.d("SAT", "Recibiendo Datos...");
+                }
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                //cambiarEstadoVisual(true);
+                return null;
+            }
+            Log.d("SAT", "Resultado: " + finalStr.toString());
+            actualizarVista(3);
+            Type listType = new TypeToken<LinkedList<Zona>>() {
+            }.getType();
+            listaZonas = new Gson().fromJson(finalStr.toString(), listType);
             return true;
         }
 
