@@ -1,7 +1,9 @@
 package com.example.wilmer.sat_riomanzanares;
 
+import android.annotation.TargetApi;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.NavigationView;
@@ -103,6 +105,7 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
                 if (proyectoSelecionado != null) {
                     Intent intent = new Intent(getBaseContext(), verProyecto.class);
                     intent.putExtra("proyectoSelecionado", proyectoSelecionado);
+                    intent.putExtra("usuarioParaVerProyecto", (Usuario) getIntent().getExtras().getSerializable("usuarioDatos"));
                     startActivity(intent);
                 } else {
                     mostrarMensaje("No hay Conexion a internet", Toast.LENGTH_LONG);
@@ -157,6 +160,7 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
         return super.onOptionsItemSelected(item);
     }
 
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
@@ -172,7 +176,7 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
 
         } else if (id == R.id.salir) {
 
-            finish();
+            finishAffinity();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

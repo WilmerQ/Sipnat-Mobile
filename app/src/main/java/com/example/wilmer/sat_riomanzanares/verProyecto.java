@@ -38,6 +38,7 @@ import com.example.wilmer.sat_riomanzanares.SqLite.parametroBD;
 import com.example.wilmer.sat_riomanzanares.modelo.DetalleZona;
 import com.example.wilmer.sat_riomanzanares.modelo.Proyecto;
 import com.example.wilmer.sat_riomanzanares.modelo.Sensor;
+import com.example.wilmer.sat_riomanzanares.modelo.Usuario;
 import com.example.wilmer.sat_riomanzanares.modelo.Zona;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -117,7 +118,7 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
         nombreProyecto = (TextView) findViewById(R.id.textView13);
         nombreProyecto.setText(proyecto.getNombre());
         bar = (ProgressBar) findViewById(R.id.progressBarVerProyecto);
-        bar.setVisibility(View.VISIBLE);
+        //bar.setVisibility(View.VISIBLE);
         bar.setMax(10);
         bar.setProgress(1);
         zona = (Spinner) findViewById(R.id.spinnerZonas);
@@ -126,10 +127,6 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
 
         cambiarEstadoVisual(false);
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.fragmentVerMapa);
-
-        // String url = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/SensorMovil/" + proyecto.getId();
-        // new DescargarSensorXProyecto().execute(url);
-
 
         zona.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -155,8 +152,18 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
         });
 
         notificaciones = (Switch) findViewById(R.id.switch1);
+        Cursor cursor = bd.consultarProyecto(proyecto.getId().toString(), DameIMEI(context));
+        cursor.moveToFirst();
+        if (cursor.getCount() == 0) {
+            Log.d("SAT", "notificacion desactivada");
+            notificaciones.setChecked(false);
+        } else {
+            Log.d("SAT", "notificacion activada");
 
-        notificaciones.setChecked(false);
+        }
+        cursor.close();
+
+
         notificaciones.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -165,23 +172,26 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
                 if (isChecked) {
                     if (isUserRegistered(context)) {
                         Log.d("SAT", "Dispositivo Registrado");
+                        mostrarMensaje("Notificacion Activada", Toast.LENGTH_SHORT);
                     } else {
                         Log.d("SAT", "Dispositivo para regiistrar");
-                        registerInBackground();
-                        //String url = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/dispositivos/" + cursor.getString(1) + "/" + cursor.getString(0);
-                        //new SendGcmToServer().execute(url);
+                        new SendGcmToServer().execute("");
                     }
                     if (checkPlayServices()) {
                         gcm = GoogleCloudMessaging.getInstance(context);
                         regid = getRegistrationId(context);
                         if (regid.isEmpty()) {
-                            registerInBackground();
-                            //String url = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/dispositivos/" + cursor.getString(1) + "/" + cursor.getString(0);
-                            //new SendGcmToServer().execute(url);
+                            new SendGcmToServer().execute("");
                         }
                     } else {
                         Log.d("SAT", "No valid Google Play Services APK found.");
                     }
+                } else {
+                    Log.d("SAT", "Dispositivo para eliminar");
+                    bd.EliminarDispositvo(proyecto.getId().toString());
+                    new EliminarDispositivo().execute("");
+                    mostrarMensaje("Notificacion Desactivada", Toast.LENGTH_SHORT);
+
                 }
                 cursor.close();
             }
@@ -237,18 +247,12 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
+        if (id == R.id.Mi_perfilVerProyecto) {
+            Usuario usuario = (Usuario) getIntent().getExtras().getSerializable("usuarioParaVerProyecto");
+            Intent i = new Intent(this, MiPerfil.class);
+            i.putExtra("usuarioDatos", usuario);
+            startActivity(i);
             // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -574,48 +578,6 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
         }
     }
 
-    //gcm
-    private void registerInBackground() {
-        new AsyncTask() {
-            @Override
-            protected String doInBackground(Object[] params) {
-                try {
-                    if (gcm == null) {
-                        gcm = GoogleCloudMessaging.getInstance(verProyecto.this);
-                        Log.d("SAT", "gcm:--- " + gcm.toString());
-                    }
-                    regid = gcm.register(Util.SENDER_ID);
-                    bd.insertar_dispositivos(DameIMEI(context), regid);
-                    msg = "Device registered, registration ID=" + regid;
-
-
-                    // You should send the registration ID to your server over HTTP,
-                    //GoogleCloudMessaging gcm;/ so it can use GCM/HTTP or CCS to send messages to your app.
-                    // The request to your server should be authenticated if your app
-                    // is using accounts.
-                    // sendRegistrationIdToBackend();
-
-                    // For this demo: we don't need to send it because the device
-                    // will send upstream messages to a server that echo back the
-                    // message using the 'from' address in the message.
-
-                    // Persist the registration ID - no need to register again.
-                    storeRegistrationId(context, regid);
-                } catch (IOException ex) {
-                    msg = "Error :" + ex.getMessage();
-                    // If there is an error, don't just keep trying to register.
-                    // Require the user to click a button again, or perform
-                    // exponential back-off.
-                }
-                Log.d("SAT", "MSG:---- " + "" + msg);
-                return msg;
-
-
-            }
-        }.execute();
-
-    }
-
     private void storeRegistrationId(Context context, String regId) {
         final SharedPreferences prefs = getGCMPreferences(context);
         int appVersion = getAppVersion(context);
@@ -645,9 +607,10 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
     }
 
     private boolean isUserRegistered(Context context) {
-        Cursor cursor = bd.consultarDispositivo(DameIMEI(context));
+        Cursor cursor = bd.consultarProyecto(proyecto.getId().toString(), DameIMEI(context));
         cursor.moveToFirst();
         if (cursor.getCount() > 0) {
+            cursor.close();
             return true;
         } else if (cursor.getCount() == 0) {
             Log.d(TAG, "Registration not found.");
@@ -707,7 +670,20 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
         @Override
         protected Boolean doInBackground(String... params) {
             try {
-                URL url = new URL(params[0]);
+                if (gcm == null) {
+                    gcm = GoogleCloudMessaging.getInstance(verProyecto.this);
+                }
+                regid = gcm.register(Util.SENDER_ID);
+                msg = "Device registered, registration ID=" + regid;
+                storeRegistrationId(context, regid);
+            } catch (IOException ex) {
+                msg = "Error :" + ex.getMessage();
+                return null;
+            }
+            //Log.d("SAT", "MSG:---- " + "" + msg);
+            String url1 = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/dispositivos/" + regid + "/" + DameIMEI(context) + "/" + proyecto.getId();
+            try {
+                URL url = new URL(url1);
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
                 connection.setConnectTimeout(10 * 1000);
@@ -718,7 +694,7 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
 
             } catch (Exception e) {
                 Log.e("SAT", "Error: " + e.getMessage());
-                //               cambiarEstadoVisual(true);
+                //cambiarEstadoVisual(true);
                 return null;
             }
 
@@ -745,9 +721,73 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
                 mostrarMensaje("Error de conexion - Verifique la conexion", Toast.LENGTH_SHORT);
             } else if (aBoolean) {
                 if (finalStr.toString().equals("Ok")) {
-                    mostrarMensaje("Se guardo el dispositivo", Toast.LENGTH_SHORT);
+                    bd.insertar_dispositivos(DameIMEI(context), regid, proyecto.getId());
+                    mostrarMensaje("Notificacion Activada", Toast.LENGTH_SHORT);
                 } else if (finalStr.toString().equals("Error")) {
-                    mostrarMensaje("Error al guardar dispositivo en server", Toast.LENGTH_SHORT);
+                    mostrarMensaje("Error al guardar dispositivo en server, Intente Luego", Toast.LENGTH_SHORT);
+                } else if (finalStr.toString().equals("Ya Exite")) {
+                    mostrarMensaje("Notificacion Activada", Toast.LENGTH_SHORT);
+                    bd.insertar_dispositivos(DameIMEI(context), regid, proyecto.getId());
+                }
+            }
+            super.onPostExecute(aBoolean);
+        }
+    }
+
+    public class EliminarDispositivo extends AsyncTask<String, String, Boolean> {
+
+        HttpURLConnection connection;
+        StringBuilder finalStr = new StringBuilder();
+        BufferedReader in;
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+            String url1 = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/dispositivos/" + DameIMEI(context) + "/" + proyecto.getId();
+            try {
+                URL url = new URL(url1);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(10 * 1000);
+                connection.setReadTimeout(10 * 1000);
+                connection.connect();
+                Log.d("SAT", "Conectando a: " + url);
+                in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+            } catch (Exception e) {
+                Log.e("SAT", "Error: " + e.getMessage());
+                //cambiarEstadoVisual(true);
+                return null;
+            }
+
+            try {
+
+                Log.d("SAT", "Recibiendo Datos");
+                String str;
+                while ((str = in.readLine()) != null) {
+                    finalStr.append(str);
+                    Log.d("SAT", "Recibiendo Datos...");
+                }
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+            Log.d("SAT", "Resultado: " + finalStr.toString());
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            if (aBoolean == null) {
+                mostrarMensaje("Error de conexion - Verifique la conexion", Toast.LENGTH_SHORT);
+            } else if (aBoolean) {
+                if (finalStr.toString().equals("Ok")) {
+
+                } else if (finalStr.toString().equals("Error")) {
+                    mostrarMensaje("Error al guardar dispositivo en server, Intente Luego", Toast.LENGTH_SHORT);
+                } else if (finalStr.toString().equals("Ya Exite")) {
+
+
                 }
             }
             super.onPostExecute(aBoolean);

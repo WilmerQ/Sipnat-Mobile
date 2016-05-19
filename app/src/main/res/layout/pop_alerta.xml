@@ -40,13 +40,13 @@
                 android:textStyle="bold|italic" />
 
             <TextView
-                android:id="@+id/textView27"
+                android:id="@+id/textViewNombreProyecto"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/textView26"
                 android:layout_centerHorizontal="true"
                 android:gravity="center"
-                android:text="se te quema la casa mk"
+                android:text="proyeco ejemplo "
                 android:textColor="#000000"
                 android:textIsSelectable="false"
                 android:textSize="20dp" />
@@ -74,7 +74,7 @@
                 android:layout_alignParentStart="true"
                 android:layout_below="@+id/textView28"
                 android:gravity="center"
-                android:text="que mas descripcion... se te esta quemando la casa marica"
+                android:text="que mas descripcion... "
                 android:textColor="#000000"
                 android:textIsSelectable="false"
                 android:textSize="20dp" />
@@ -83,7 +83,7 @@
                 android:id="@+id/textView30"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/textView27"
+                android:layout_below="@+id/textViewNombreProyecto"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="15dp"
                 android:text="Nivel"
@@ -99,7 +99,7 @@
                 android:layout_below="@+id/textView30"
                 android:layout_centerHorizontal="true"
                 android:gravity="center"
-                android:text="nivel de la alerta"
+                android:text="nivel de la alerta - roja"
                 android:textColor="#000000"
                 android:textIsSelectable="false"
                 android:textSize="20dp" />

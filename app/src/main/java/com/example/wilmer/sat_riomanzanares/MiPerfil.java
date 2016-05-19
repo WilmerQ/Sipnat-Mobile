@@ -1,6 +1,8 @@
 package com.example.wilmer.sat_riomanzanares;
 
+import android.annotation.TargetApi;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.NavigationView;
@@ -163,15 +165,19 @@ public class MiPerfil extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-
         if (id == R.id.salir) {
+            finishAffinity();
+        }
+        if (id == R.id.atrasMiPerfil) {
             finish();
         }
+
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -182,6 +188,7 @@ public class MiPerfil extends AppCompatActivity
      * Modificar Dato
      * <br>
      * metodo encargado de recoger los datos editados desde la aplicacion y guardar los cambios hasta el seridor a traves del conmuso de un web service.
+     *
      * @param usuarioLogueado
      * @param correo
      * @param telefono

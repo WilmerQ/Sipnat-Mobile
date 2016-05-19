@@ -1,4 +1,4 @@
-<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<resources>
     <item name="ic_menu_camera" type="drawable">@android:drawable/ic_menu_camera</item>
     <item name="ic_menu_gallery" type="drawable">@android:drawable/ic_menu_gallery</item>
     <item name="ic_menu_slideshow" type="drawable">@android:drawable/ic_menu_slideshow</item>
@@ -11,9 +11,9 @@
     <item name="ic_ayuda" type="drawable">@android:drawable/ic_menu_help</item>
     <item name="ic_registrar" type="drawable">@android:drawable/ic_menu_add</item>
     <item name="ic_salir" type="drawable">@android:drawable/ic_delete</item>
-
-
     <item name="ic_atras" type="drawable">@android:drawable/ic_menu_revert</item>
+
+
 
 
 </resources>

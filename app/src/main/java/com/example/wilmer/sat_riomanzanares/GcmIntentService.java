@@ -82,7 +82,7 @@ public class GcmIntentService extends IntentService {
 
         android.support.v4.app.NotificationCompat.Builder mBuilder =
                 new android.support.v4.app.NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.ic_salir)
+                        .setSmallIcon(R.mipmap.iconoprincipal)
                         .setContentTitle("SAT - Alerta")
                         .setStyle(new android.support.v4.app.NotificationCompat.BigTextStyle().bigText(msg))
                         .setContentText(msg);
