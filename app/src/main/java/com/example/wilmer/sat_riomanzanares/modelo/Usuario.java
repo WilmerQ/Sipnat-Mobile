@@ -18,6 +18,8 @@ import java.io.Serializable;
  */
 public class Usuario implements Serializable {
 
+    private Long id;
+
     /**
      * nombre del usuario
      */
@@ -129,4 +131,13 @@ public class Usuario implements Serializable {
     public void setInformeDeError(Integer informeDeError) {
         this.informeDeError = informeDeError;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 }
+

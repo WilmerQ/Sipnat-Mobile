@@ -274,7 +274,7 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
             }
 
             try {
-                publishProgress("Recibiendo Proyectos");
+                //publishProgress("Recibiendo Proyectos");
                 Log.d("SAT", "Recibiendo Datos");
                 String str;
                 while ((str = in.readLine()) != null) {
@@ -319,7 +319,7 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
 
         @Override
         protected void onProgressUpdate(String... values) {
-            mostrarMensaje(values[0], Toast.LENGTH_LONG);
+            mostrarMensaje(values[0], Toast.LENGTH_SHORT);
             super.onProgressUpdate(values);
         }
 

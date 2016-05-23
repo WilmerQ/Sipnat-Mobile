@@ -2,6 +2,7 @@ package com.example.wilmer.sat_riomanzanares;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,16 +18,20 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.wilmer.sat_riomanzanares.modelo.Usuario;
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * clase MiPerfil
@@ -68,6 +73,10 @@ public class MiPerfil extends AppCompatActivity
      * The Usuario logueado.
      */
     Usuario usuarioLogueado;
+    /**
+     * barra de progreso
+     */
+    ProgressBar progreso;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,38 +85,46 @@ public class MiPerfil extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        usuarioLogueado = (Usuario) getIntent().getExtras().getSerializable("usuarioDatos");
 
         correo = (EditText) findViewById(R.id.EditCorreo);
         telefono = (EditText) findViewById(R.id.EditTelefono);
         nombreUsuario = (TextView) findViewById(R.id.TxtNombreUsuario);
         modificarDatos = (Button) findViewById(R.id.BtnActualizarDatos);
-
-        nombreUsuario.setText(usuarioLogueado.getNombreUsuario());
-        correo.setEnabled(false);
-        correo.setText(usuarioLogueado.getEmail());
-        telefono.setEnabled(false);
-        telefono.setText(usuarioLogueado.getTelefono());
         cambiarContra = (Button) findViewById(R.id.BtnCambiarContra);
+        progreso = (ProgressBar) findViewById(R.id.progressBarMiPerfil);
+        progreso.setMax(3);
+        progreso.setProgress(1);
+        cambiarEstadoVisualCompleta(false);
+
+        usuarioLogueado = (Usuario) getIntent().getExtras().getSerializable("usuarioDatos");
+        new Descargar().execute("http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/Usuario/" + usuarioLogueado.getId());
 
         modificarDatos.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (modificarDatos.getText().equals("Actualizar Datos")) {
-                    correo.setEnabled(true);
-                    telefono.setEnabled(true);
+                    cambiarEstadoVisual(true);
                     modificarDatos.setText("Guardar");
                 } else {
-                    if ((!correo.getText().equals(usuarioLogueado.getEmail())) || (!telefono.getText().equals(usuarioLogueado.getTelefono()))) {
-                        Log.d("SAT", "modificar datos");
-                        try {
-                            ModificarDato(usuarioLogueado, "" + correo.getText(), "" + telefono.getText());
-                            modificarDatos.setText("Actualizar Datos");
-                            correo.setEnabled(false);
-                            telefono.setEnabled(false);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                    if ((!(validateEmail(correo.getText().toString()))) & correo.getText().length() > 0) {
+                        mostrarMensaje("El formato de correo es incorecto Ejemplo: ejemplo@correo.com", Toast.LENGTH_SHORT);
+                        correo.setText("");
+                    }
+                    if ((correo.getText().length() > 0) && (telefono.getText().length() > 0)) {
+                        String url = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/CambioEmail/" + usuarioLogueado.getNombreUsuario() + "/" + correo.getText() + "/" + telefono.getText();
+                        progreso.setVisibility(View.VISIBLE);
+                        progreso.setMax(3);
+                        progreso.setProgress(1);
+                        new ActualizarDatos().execute(url);
+                        cambiarEstadoVisualCompleta(false);
+                        modificarDatos.setText("Actualizar Datos");
+                        cambiarEstadoVisual(false);
+                    }
+                    if (!(correo.getText().length() > 0)) {
+                        mostrarMensaje("Ingrese Correo", Toast.LENGTH_SHORT);
+                    }
+                    if (!(telefono.getText().length() > 0)) {
+                        mostrarMensaje("Ingrese telefono", Toast.LENGTH_SHORT);
                     }
                 }
             }
@@ -184,62 +201,190 @@ public class MiPerfil extends AppCompatActivity
         return true;
     }
 
-    /**
-     * Modificar Dato
-     * <br>
-     * metodo encargado de recoger los datos editados desde la aplicacion y guardar los cambios hasta el seridor a traves del conmuso de un web service.
-     *
-     * @param usuarioLogueado
-     * @param correo
-     * @param telefono
-     * @throws Exception
-     */
-    private void ModificarDato(Usuario usuarioLogueado, String correo, String telefono) throws Exception {
-        StringBuilder finalStr = new StringBuilder();
-        URL url = new URL("http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/CambioEmail/" + usuarioLogueado.getNombreUsuario() + "/" + correo + "/" + telefono);
-        BufferedReader in;
-        Log.d("SAT", "Conectando a: " + url);
-
-        try {
-            in = new BufferedReader(new InputStreamReader(url.openStream()));
-        } catch (Exception e) {
-            Log.e("SAT", "Error: " + e.getMessage());
-            throw new Exception("SIN CONEXION");
-        }
-        Log.d("SAT", "Recibiendo Datos");
-        String str;
-        while ((str = in.readLine()) != null) {
-            finalStr.append(str);
-            Log.d("SAT", "Recibiendo Datos...");
-        }
-
-        in.close();
-
-        Log.d("SAT", "Resultado: " + finalStr.toString());
-
-        Gson gson = new Gson();
-
-        try {
-            if (!finalStr.toString().equals("ok")) {
-                mostrarMensaje("ERROR ACTULIZANDO DATOS", Toast.LENGTH_LONG);
-            } else {
-                mostrarMensaje("" + usuarioLogueado.getNombreUsuario() + "  sus datos se han actulizado correctamente", Toast.LENGTH_LONG);
-                Intent i = new Intent(this, Loguin.class);
-                startActivity(i);
-
-            }
-        } catch (JsonSyntaxException e) {
-            e.printStackTrace();
-        }
-    }
-
     private void mostrarMensaje(final String mensaje, final int duracion) {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(getApplicationContext(), mensaje, duracion).show();
+                Toast.makeText(getBaseContext(), mensaje, duracion).show();
             }
         });
     }
 
+    /**
+     * funcion utilizda para validar la estructuta del email ingresado por el usuario.
+     * contiene el expresion regular de validar email.
+     *
+     * @param email
+     * @return matcher
+     */
+    public static boolean validateEmail(String email) {
+        String PATTERN_EMAIL = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
+                + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+
+        // Compiles the given regular expression into a pattern.
+        Pattern pattern = Pattern.compile(PATTERN_EMAIL);
+
+        // Match the given input against this pattern
+        Matcher matcher = pattern.matcher(email);
+        return matcher.matches();
+
+    }
+
+    public class ActualizarDatos extends AsyncTask<String, String, Boolean> {
+
+        HttpURLConnection connection;
+        StringBuilder finalStr = new StringBuilder();
+        BufferedReader in;
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+            try {
+                URL url = new URL(params[0]);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(10 * 1000);
+                connection.setReadTimeout(10 * 1000);
+                connection.connect();
+                Log.d("SAT", "Conectando a: " + url);
+                in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+            } catch (Exception e) {
+                Log.e("SAT", "Error: " + e.getMessage());
+                return null;
+            }
+
+            try {
+
+                Log.d("SAT", "Recibiendo Datos");
+                String str;
+                while ((str = in.readLine()) != null) {
+                    finalStr.append(str);
+                    Log.d("SAT", "Recibiendo Datos...");
+                }
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+            Log.d("SAT", "Resultado: " + finalStr.toString());
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            if (aBoolean == null) {
+                mostrarMensaje("Error de conexion - Verifique la conexion", Toast.LENGTH_SHORT);
+                cambiarEstadoVisualCompleta(true);
+                progreso.setVisibility(View.INVISIBLE);
+            } else if (aBoolean) {
+                if (finalStr.toString().equals("ok")) {
+                    cambiarEstadoVisualCompleta(true);
+                    cambiarEstadoVisual(false);
+                    progreso.setProgress(3);
+                    progreso.setVisibility(View.INVISIBLE);
+                    mostrarMensaje("Datos Actualizados", Toast.LENGTH_SHORT);
+                } else if (finalStr.toString().equals("Error")) {
+                    cambiarEstadoVisualCompleta(true);
+                    mostrarMensaje("Error, Intente Luego", Toast.LENGTH_SHORT);
+                }
+            }
+            super.onPostExecute(aBoolean);
+        }
+    }
+
+    private void cambiarEstadoVisual(final boolean flag) {
+        mHandler.post(new Runnable() {
+            public void run() {
+                correo.setEnabled(flag);
+                telefono.setEnabled(flag);
+            }
+        });
+    }
+
+    private void cambiarEstadoVisualCompleta(final boolean flag) {
+        mHandler.post(new Runnable() {
+            public void run() {
+                correo.setEnabled(flag);
+                telefono.setEnabled(flag);
+                nombreUsuario.setEnabled(flag);
+                modificarDatos.setEnabled(flag);
+                cambiarContra.setEnabled(flag);
+            }
+        });
+    }
+
+    public class Descargar extends AsyncTask<String, String, Boolean> {
+
+        /**
+         * HttpURLConnection objeto connection que establece la comunicacion.
+         */
+        HttpURLConnection connection;
+        /**
+         * StringBuilder encargada de obtener la cadena de texto descargada desde la comunicacion.
+         */
+        StringBuilder finalStr = new StringBuilder();
+        /**
+         * BufferedReader informacion recibida sin ningun tipo de formato
+         */
+        BufferedReader in;
+        /**
+         * The Gson.
+         */
+        Gson gson = new Gson();
+        /**
+         * The Usuario.
+         */
+        Usuario usuario;
+
+        protected Boolean doInBackground(String... params) {
+            try {
+                URL url = new URL(params[0]);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(5 * 1000);
+                connection.setReadTimeout(10 * 1000);
+                connection.connect();
+                Log.d("SAT", "Conectando a: " + url);
+                in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            } catch (Exception e) {
+
+                Log.e("SAT", "Error: " + e.getMessage());
+                return null;
+            }
+
+            try {
+                Log.d("SAT", "Recibiendo Datos");
+                String str;
+                while ((str = in.readLine()) != null) {
+                    finalStr.append(str);
+                    Log.d("SAT", "Recibiendo Datos...");
+                }
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+
+            Log.d("SAT", "Resultado: " + finalStr.toString());
+            usuario = gson.fromJson(finalStr.toString(), Usuario.class);
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aVoid) {
+            if (aVoid == null) {
+                mostrarMensaje("Sin Internet", Toast.LENGTH_SHORT);
+                finish();
+            } else if (aVoid) {
+                cambiarEstadoVisualCompleta(true);
+                progreso.setProgress(3);
+                progreso.setVisibility(View.INVISIBLE);
+                nombreUsuario.setText(usuario.getNombreUsuario());
+                correo.setText(usuario.getEmail());
+                telefono.setText(usuario.getTelefono());
+                cambiarEstadoVisual(false);
+            }
+            super.onPostExecute(aVoid);
+        }
+    }
 }

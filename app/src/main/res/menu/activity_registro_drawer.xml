@@ -2,11 +2,24 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
 
-<group android:checkableBehavior="single">
-        <item
-            android:id="@+id/salir1"
-            android:icon="@drawable/ic_salir"
-            android:title="Atras" />
-    </group>
+    <item android:title="">
+        <menu>
+            <item
+                android:id="@+id/atrasRegistro"
+                android:icon="@drawable/ic_atras"
+                android:title="Atras" />
+        </menu>
+    </item>
+
+    <item android:title="">
+        <menu>
+            <item
+                android:id="@+id/salirRegistro"
+
+                android:icon="@drawable/ic_salir"
+                android:title="Salir" />
+
+        </menu>
+    </item>
 
 </menu>

@@ -1,6 +1,6 @@
 package com.example.wilmer.sat_riomanzanares;
 
-import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -9,15 +9,16 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.wilmer.sat_riomanzanares.modelo.Md5;
 import com.example.wilmer.sat_riomanzanares.modelo.Usuario;
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
@@ -57,6 +58,8 @@ public class cambiarContrasena extends AppCompatActivity {
      */
     Usuario usuarioLogueado;
 
+    ProgressBar progreso;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,7 +89,10 @@ public class cambiarContrasena extends AppCompatActivity {
          */
         Guardar = (Button) findViewById(R.id.guardar);
 
+        progreso = (ProgressBar) findViewById(R.id.progressBarCambiarContrasea);
 
+        progreso.setVisibility(View.INVISIBLE);
+        progreso.setMax(3);
         /**
          * Guardar.setOnClickListener
          * evento del boton guardar donde se realizara:
@@ -107,11 +113,12 @@ public class cambiarContrasena extends AppCompatActivity {
                             Log.d("SAT", "convertida: " + convertida);
                             Log.d("SAT", "actual: " + usuarioLogueado.getClave());
                             if (convertida.trim().equals(usuarioLogueado.getClave().trim())) {
-                                try {
-                                    ModificarContra(usuarioLogueado, confirmacion.getText().toString().trim());
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
+                                progreso.setVisibility(View.VISIBLE);
+                                progreso.setProgress(1);
+                                new CambiarContrasenaAsynt().execute("http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/CambioContra/" + usuarioLogueado.getNombreUsuario() + "/" + nueva.getText().toString().trim());
+                            } else {
+                                mostrarMensaje("Contraseña Actual incorrecta", Toast.LENGTH_SHORT);
+                                actual.setText("");
                             }
                         }
                     } else {
@@ -123,55 +130,6 @@ public class cambiarContrasena extends AppCompatActivity {
 
     }
 
-
-    /**
-     * ModificarContra
-     * <br>
-     * metodo que recibe el usuario actual y la nueva contraseña y envia la informacion al servidor para que realice el cambio de contraseña
-     *
-     * @param usuarioLogueado
-     * @param nueva
-     * @throws Exception
-     */
-    private void ModificarContra(Usuario usuarioLogueado, String nueva) throws Exception {
-        StringBuilder finalStr = new StringBuilder();
-        URL url = new URL("http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/CambioContra/" + usuarioLogueado.getNombreUsuario() + "/" + nueva.trim());
-
-        BufferedReader in;
-        Log.d("SAT", "Conectando a: " + url);
-
-        try {
-            in = new BufferedReader(new InputStreamReader(url.openStream()));
-        } catch (Exception e) {
-            Log.e("SAT", "Error: " + e.getMessage());
-            throw new Exception("SIN CONEXION");
-        }
-        Log.d("SAT", "Recibiendo Datos");
-        String str;
-        while ((str = in.readLine()) != null) {
-            finalStr.append(str);
-            Log.d("SAT", "Recibiendo Datos...");
-        }
-
-        in.close();
-
-        Log.d("SAT", "Resultado: " + finalStr.toString());
-
-        Gson gson = new Gson();
-
-        try {
-            if (!finalStr.toString().equals("ok")) {
-                mostrarMensaje("ERROR ACTULIZANDO DATOS", Toast.LENGTH_LONG);
-            } else {
-                mostrarMensaje("" + usuarioLogueado.getNombreUsuario() + "  sus datos se han actulizado correctamente", Toast.LENGTH_LONG);
-                Intent i = new Intent(this, Loguin.class);
-                startActivity(i);
-
-            }
-        } catch (JsonSyntaxException e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * mostrarMensaje:
@@ -190,4 +148,69 @@ public class cambiarContrasena extends AppCompatActivity {
         });
     }
 
+    /**
+     * ModificarContra
+     * <br>
+     * metodo que recibe el usuario actual y la nueva contraseña y envia la informacion al servidor para que realice el cambio de contraseña
+     *
+     * @throws Exception
+     */
+    public class CambiarContrasenaAsynt extends AsyncTask<String, String, Boolean> {
+
+        HttpURLConnection connection;
+        StringBuilder finalStr = new StringBuilder();
+        BufferedReader in;
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+            try {
+                URL url = new URL(params[0]);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(10 * 1000);
+                connection.setReadTimeout(10 * 1000);
+                connection.connect();
+                Log.d("SAT", "Conectando a: " + url);
+                in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+            } catch (Exception e) {
+                Log.e("SAT", "Error: " + e.getMessage());
+                return null;
+            }
+
+            try {
+
+                Log.d("SAT", "Recibiendo Datos");
+                String str;
+                while ((str = in.readLine()) != null) {
+                    finalStr.append(str);
+                    Log.d("SAT", "Recibiendo Datos...");
+                }
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+            Log.d("SAT", "Resultado: " + finalStr.toString());
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            if (aBoolean == null) {
+                mostrarMensaje("Error de conexion - Verifique la conexion", Toast.LENGTH_SHORT);
+                progreso.setVisibility(View.INVISIBLE);
+            } else if (aBoolean) {
+                if (finalStr.toString().equals("ok")) {
+                    progreso.setProgress(3);
+                    progreso.setVisibility(View.INVISIBLE);
+                    mostrarMensaje("Contraseña Modificada", Toast.LENGTH_SHORT);
+                    finish();
+                } else if (finalStr.toString().equals("Error")) {
+                    mostrarMensaje("Error, Intente Luego", Toast.LENGTH_SHORT);
+                }
+            }
+            super.onPostExecute(aBoolean);
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package com.example.wilmer.sat_riomanzanares;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,6 +11,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -241,6 +243,7 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
         return super.onOptionsItemSelected(item);
     }
 
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
@@ -253,6 +256,8 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
             i.putExtra("usuarioDatos", usuario);
             startActivity(i);
             // Handle the camera action
+        } else if (id == R.id.salirVerProyecto) {
+            finishAffinity();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -538,7 +543,7 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
             }
 
             try {
-                publishProgress("Recibiendo Sensores del proyecto");
+                //publishProgress("Recibiendo Sensores del proyecto");
                 Log.d("SAT", "Recibiendo Datos");
                 String str;
                 while ((str = in.readLine()) != null) {
