@@ -29,6 +29,10 @@ public class parametroBD {
             "idproyecto TEXT NOT NULL " +
             ");";
 
+    public static final String crear_tabla_usuario = "CREATE TABLE usuario (" +
+            "id INTEGER NOT NULL " +
+            ");";
+
     /*alter table ejmplo
     public static final String actualizar_gps = "ALTER TABLE gps ADD COLUMN ruta INTEGER; update gps set ruta = 0";*/
 
@@ -47,8 +51,7 @@ public class parametroBD {
     }
 
     public Cursor consultarDispositivo(String imei) {
-        Cursor cursor = db.rawQuery("SELECT * FROM dispositivos where imei=" + imei, null);
-        return cursor;
+        return db.rawQuery("SELECT * FROM dispositivos where imei=" + imei, null);
     }
 
 
@@ -57,11 +60,31 @@ public class parametroBD {
         return cursor;
     }
 
-    public void EliminarDispositvo(String idproyecto){
-        int a = db.delete("dispositivos","idproyecto="+idproyecto,null);
+
+    public Cursor consultarUsuario() {
+        Cursor cursor = db.rawQuery("SELECT * FROM usuario", null);
+        return cursor;
     }
 
+    public void EliminarDispositvo(String idproyecto) {
+        int a = db.delete("dispositivos", "idproyecto=" + idproyecto, null);
+    }
 
+    //ContentValues
+    private ContentValues generarContentValues_usuario(String id) {
+        ContentValues valores = new ContentValues();
+        valores.put("id", id);
+        return valores;
+    }
+
+    public Long Reiniciar(String idusuario) {
+        eliminartabla();
+        return db.insert("usuario", null, generarContentValues_usuario(idusuario));
+    }
+
+    public void eliminartabla() {
+        db.execSQL("delete from usuario");
+    }
 }
 
 

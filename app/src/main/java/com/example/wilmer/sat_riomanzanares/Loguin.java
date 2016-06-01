@@ -19,6 +19,7 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.example.wilmer.sat_riomanzanares.SqLite.parametroBD;
 import com.example.wilmer.sat_riomanzanares.modelo.Usuario;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -67,6 +68,9 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
      * Intent encargado de lanzar una nueva actividad en dicho momento.
      */
     Intent i;
+
+    //llamando a bd
+    parametroBD bd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -215,6 +219,7 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
 
     /**
      * metodo encargado de actualizar la barra de progreso en la actividad.
+     *
      * @param progress
      */
     private void actualizarVista(final int progress) {
@@ -232,6 +237,7 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
      * clase Descagar
      * <br>
      * clase encarga de implementar el AsyncTask interfaz optimizada para comunicacion de datos desde servidor a el dispositivo.
+     *
      * @author Wilmer
      * @see android.os.AsyncTask
      */
@@ -339,6 +345,8 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
                     i.putExtra("usuarioDatos", usuario);
                     progreso.setProgress(100);
                     startActivity(i);
+                    bd = new parametroBD(Loguin.this);
+                    bd.Reiniciar(usuario.getId().toString());
                     finish();
                 }
             } catch (JsonSyntaxException e) {

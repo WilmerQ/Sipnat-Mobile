@@ -7,8 +7,6 @@ import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.view.View;
 
-import com.example.wilmer.sat_riomanzanares.R;
-
 import java.io.InputStream;
 
 public class GifView extends View{
@@ -38,7 +36,7 @@ public class GifView extends View{
 	private void init(Context context) {
 		setFocusable(true);
 
-		gifInputStream = context.getResources().openRawResource(R.drawable.ultimo);
+		//gifInputStream = context.getResources().openRawResource(R.drawable.ultimo);
 		
 		gifMovie = Movie.decodeStream(gifInputStream);
 		movieWidth = gifMovie.width();

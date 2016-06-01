@@ -251,6 +251,7 @@ public class Pop extends Activity {
                 for (Dato d : datos) {
                     if ((d.getFechaRecolecion().getTime() > calendar1.getTimeInMillis()) && (d.getFechaRecolecion().getTime() < tope.getTimeInMillis())) {
                         Log.d("SAT", "las fechas de hoy: " + d.getDato() + "   ---- " + d.getFechaRecolecion());
+                        Log.d("SAT", "el long de la fecha: " + d.getFechaRecolecion().getTime());
                         datosGraficar.add(d);
                     }
                 }
@@ -302,7 +303,7 @@ public class Pop extends Activity {
                 XYSeries series2 = new SimpleXYSeries(
                         Arrays.asList(horas),
                         Arrays.asList(dato),
-                        "Datos del Sensor" + sensor.getId());
+                        "Datos del Sensor: " + sensor.getId());
 
                 mySimpleXYPlot.getGraphWidget().getGridBackgroundPaint().setColor(Color.WHITE);
                 mySimpleXYPlot.getGraphWidget().getDomainGridLinePaint().setColor(Color.BLACK);
@@ -359,8 +360,9 @@ public class Pop extends Activity {
 
                         // because our timestamps are in seconds and SimpleDateFormat expects milliseconds
                         // we multiply our timestamp by 1000:
-                        long timestamp = ((Number) obj).longValue() * 1000;
-                        Date date = new Date(timestamp);
+                        /*long timestamp = ((Number) obj).longValue() * 1000;
+                        Date date = new Date(timestamp);**/
+                        Date date = new Date(((Number) obj).longValue());
                         return dateFormat.format(date, toAppendTo, pos);
                     }
 

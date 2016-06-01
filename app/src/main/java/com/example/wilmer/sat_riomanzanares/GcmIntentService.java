@@ -1,14 +1,14 @@
 package com.example.wilmer.sat_riomanzanares;
 
 import android.app.IntentService;
-import android.app.NotificationManager;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.example.wilmer.sat_riomanzanares.modelo.Alerta;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.google.gson.Gson;
 
 /**
  * Clase GcmIntentService
@@ -20,9 +20,8 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
  * @see android.app.IntentService
  */
 public class GcmIntentService extends IntentService {
-    public static final int NOTIFICATION_ID = 1;
-    private NotificationManager mNotificationManager;
-    android.support.v4.app.NotificationCompat.Builder builder;
+
+
     String TAG = "SAT";
 
     public GcmIntentService() {
@@ -53,9 +52,9 @@ public class GcmIntentService extends IntentService {
                 // If it's a regular GCM message, do some work.
             } else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
                 String recieved_message = intent.getStringExtra("message");
-                sendNotification("message recieved :" + recieved_message);
-                // alertaDialogo("message recieved :" + recieved_message);
-                Log.d("SAT", "message recieved: " + recieved_message);
+                sendNotification(recieved_message);
+
+                //Log.d("SAT", "message recieved: " + recieved_message);
                 Intent sendIntent = new Intent("message_recieved");
                 sendIntent.putExtra("message", recieved_message);
                 LocalBroadcastManager.getInstance(this).sendBroadcast(sendIntent);
@@ -74,25 +73,13 @@ public class GcmIntentService extends IntentService {
      * @param msg
      */
     private void sendNotification(String msg) {
-        mNotificationManager = (NotificationManager)
-                this.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        /*PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, verProyecto.class), 0);*/
+        Gson gson = new Gson();
+        Alerta alerta = gson.fromJson(msg, Alerta.class);
 
-        android.support.v4.app.NotificationCompat.Builder mBuilder =
-                new android.support.v4.app.NotificationCompat.Builder(this)
-                        .setSmallIcon(R.mipmap.iconoprincipal)
-                        .setContentTitle("SAT - Alerta")
-                        .setStyle(new android.support.v4.app.NotificationCompat.BigTextStyle().bigText(msg))
-                        .setContentText(msg);
-
-        //mBuilder.setContentIntent(contentIntent);
         Intent intent = new Intent(this, PopAlerta.class);
+        intent.putExtra("alerta", alerta);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        // PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
-        //  PendingIntent.FLAG_ONE_SHOT);
         startActivity(intent);
-        mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 }

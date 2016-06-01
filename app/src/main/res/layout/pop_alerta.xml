@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/XmlPopAlerta"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#ef5350">
@@ -55,7 +56,7 @@
                 android:id="@+id/textView28"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/textView32"
+                android:layout_below="@+id/textViewNivelAlerta"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="15dp"
                 android:text="Descripción"
@@ -65,7 +66,7 @@
                 android:textStyle="bold|italic" />
 
             <TextView
-                android:id="@+id/textView29"
+                android:id="@+id/textViewDescripcion"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
@@ -93,7 +94,7 @@
                 android:textStyle="bold|italic" />
 
             <TextView
-                android:id="@+id/textView32"
+                android:id="@+id/textViewNivelAlerta"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/textView30"
@@ -109,30 +110,45 @@
                 android:id="@+id/textView31"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/textView29"
+                android:layout_below="@+id/textViewDescripcion"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="15dp"
-                android:text="Fecha y Hora"
+                android:text="Hora"
                 android:textColor="#000000"
                 android:textIsSelectable="false"
                 android:textSize="22dp"
                 android:textStyle="bold|italic" />
 
             <TextView
-                android:id="@+id/textView33"
+                android:id="@+id/FechaAlerta"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_below="@+id/textView31"
                 android:gravity="center"
                 android:text="fecha y hora...."
                 android:textColor="#000000"
                 android:textIsSelectable="false"
-                android:textSize="20dp"
-                android:layout_below="@+id/textView31"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true" />
+                android:textSize="20dp" />
+
+
+            <TextView
+                android:id="@+id/textView27"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentTop="true"
+                android:text="10"
+                android:textColor="#000000"
+                android:textIsSelectable="false"
+                android:textSize="24dp"
+                android:textStyle="bold|italic" />
 
 
         </RelativeLayout>
     </ScrollView>
+
 
 </RelativeLayout>

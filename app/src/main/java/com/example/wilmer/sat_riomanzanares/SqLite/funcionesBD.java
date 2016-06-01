@@ -21,7 +21,7 @@ public class funcionesBD extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(parametroBD.crear_tabla_dispositivos);
-
+        db.execSQL(parametroBD.crear_tabla_usuario);
     }
 
     @Override

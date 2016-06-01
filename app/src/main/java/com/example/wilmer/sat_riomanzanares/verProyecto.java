@@ -576,8 +576,15 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
                 mostrarMensaje("Error de conexion - Verifique la conexion", Toast.LENGTH_LONG);
                 finish();
             } else if (aBoolean) {
-                cambiarEstadoVisual(true);
-                actualizarVista(5);
+                if (listaZonas.isEmpty()) {
+                    cambiarEstadoVisual(true);
+                    actualizarVista(10);
+                    mostrarMensaje("Proyecno no posee Zona Afectada", Toast.LENGTH_SHORT);
+                } else {
+                    cambiarEstadoVisual(true);
+                    actualizarVista(5);
+                }
+
             }
             super.onPostExecute(aBoolean);
         }
