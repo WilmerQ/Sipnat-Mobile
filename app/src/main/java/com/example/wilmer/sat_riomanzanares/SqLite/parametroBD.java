@@ -4,6 +4,10 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Wilmer on 27/02/2015.
@@ -84,6 +88,20 @@ public class parametroBD {
 
     public void eliminartabla() {
         db.execSQL("delete from usuario");
+    }
+
+    public List<Long> consultarAlertasActivas() {
+        Cursor cursor = db.rawQuery("SELECT distinct idproyecto FROM dispositivos", null);
+        cursor.moveToFirst();
+        List<Long> temp = new ArrayList<>();
+        for (int i = 0; i < cursor.getCount(); i++) {
+            Long aLong;
+            aLong = Long.parseLong(cursor.getString(0));
+            Log.d("SAT", "operacion" + aLong);
+            temp.add(aLong);
+            cursor.moveToNext();
+        }
+        return temp;
     }
 }
 

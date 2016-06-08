@@ -6,20 +6,14 @@
             android:id="@+id/registrar"
             android:icon="@drawable/ic_registrar"
             android:title="Registrar" />
-        <item
-            android:id="@+id/Info"
-            android:icon="@drawable/ic_ayuda"
-            android:title="Informacion" />
 
     </group>
-
 
 
     <item android:title="">
         <menu>
             <item
                 android:id="@+id/salir"
-                
                 android:icon="@drawable/ic_salir"
                 android:title="Salir" />
 

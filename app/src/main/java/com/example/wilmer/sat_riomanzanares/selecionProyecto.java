@@ -21,11 +21,14 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.wilmer.sat_riomanzanares.SqLite.parametroBD;
 import com.example.wilmer.sat_riomanzanares.modelo.Proyecto;
 import com.example.wilmer.sat_riomanzanares.modelo.Usuario;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedReader;
@@ -72,6 +75,13 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
      */
     ProgressBar bar;
 
+    ListView listaProyectosActivos;
+    List<String> listaProyectosActivosTemp = new ArrayList<>();
+    List<Proyecto> lProyectosActivos = new ArrayList<>();
+    //llamando a bd
+    parametroBD bd;
+
+    TextView textAlertaActivadas;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,7 +94,9 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
         bar = (ProgressBar) findViewById(R.id.progressBarSeleccionProyecto);
         bar.setVisibility(View.VISIBLE);
         bar.setMax(5);
-
+        bd = new parametroBD(this);
+        listaProyectosActivos = (ListView) findViewById(R.id.listViewProyectosActivos);
+        textAlertaActivadas = (TextView) findViewById(R.id.textView11);
 
         String url = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/Proyecto/" + getIntent().getExtras().getString("parametro");
         new DescargarProyectos().execute(url);
@@ -114,6 +126,41 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
             }
         });
 
+        listaProyectosActivos.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String item = parent.getItemAtPosition(position).toString();
+                Log.d("SAT", "item lista: " + item);
+                Proyecto proyectoSelecionado = null;
+
+                for (int i = 0; i < listaProyectosActivosTemp.size(); i++) {
+                    if (lProyectosActivos.get(i).getNombre().contains(item)) {
+                        proyectoSelecionado = lProyectosActivos.get(i);
+                    }
+                }
+                if (proyectoSelecionado != null) {
+                    Intent intent = new Intent(getBaseContext(), verProyecto.class);
+                    intent.putExtra("proyectoSelecionado", proyectoSelecionado);
+                    intent.putExtra("usuarioParaVerProyecto", (Usuario) getIntent().getExtras().getSerializable("usuarioDatos"));
+                    startActivity(intent);
+                } else {
+                    mostrarMensaje("No hay Conexion a internet", Toast.LENGTH_LONG);
+                }
+            }
+        });
+
+        if (bd.consultarAlertasActivas().isEmpty()) {
+            textAlertaActivadas.setVisibility(View.INVISIBLE);
+            listaProyectosActivos.setVisibility(View.INVISIBLE);
+        } else {
+            Log.d("SAT", "proyectos con alertas activas");
+            Gson g = new GsonBuilder().create();
+            Log.d("SAT", "gson" + g.toJson(bd.consultarAlertasActivas()));
+            String url1 = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/Proyecto/" + g.toJson(bd.consultarAlertasActivas()) + "/2";
+            new DescargarProyectosActivos().execute(url1);
+        }
+
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -124,9 +171,11 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
         navigationView.setNavigationItemSelectedListener(this);
     }
 
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         mostrarMensaje("te vas a salir", Toast.LENGTH_SHORT);
+        finishAffinity();
         return super.onKeyDown(keyCode, event);
 
     }
@@ -172,8 +221,6 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
             Intent i = new Intent(this, MiPerfil.class);
             i.putExtra("usuarioDatos", usuario);
             startActivity(i);
-        } else if (id == R.id.Info) {
-
         } else if (id == R.id.salir) {
 
             finishAffinity();
@@ -313,6 +360,91 @@ public class selecionProyecto extends AppCompatActivity implements NavigationVie
             } else {
                 mostrarMensaje("Error de conexion - Verifique la conexion", Toast.LENGTH_LONG);
                 cambiarEstadoVisual(true);
+            }
+            super.onPostExecute(aBoolean);
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            mostrarMensaje(values[0], Toast.LENGTH_SHORT);
+            super.onProgressUpdate(values);
+        }
+
+
+    }
+
+    public class DescargarProyectosActivos extends AsyncTask<String, String, Boolean> {
+
+
+        HttpURLConnection connection;
+        StringBuilder finalStr = new StringBuilder();
+        BufferedReader in;
+
+        @Override
+        protected void onPreExecute() {
+            //actualizarVista(1);
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+            try {
+                URL url = new URL(params[0]);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(10 * 1000);
+                connection.setReadTimeout(10 * 1000);
+                connection.connect();
+                Log.d("SAT", "Conectando a: " + url);
+                in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                //  actualizarVista(2);
+            } catch (Exception e) {
+                publishProgress("sin Internet");
+                Log.e("SAT", "Error: " + e.getMessage());
+                //cambiarEstadoVisual(true);
+                return null;
+            }
+
+            try {
+                //publishProgress("Recibiendo Proyectos");
+                Log.d("SAT", "Recibiendo Datos");
+                String str;
+                while ((str = in.readLine()) != null) {
+                    finalStr.append(str);
+                    Log.d("SAT", "Recibiendo Datos...");
+                }
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                //cambiarEstadoVisual(true);
+                return null;
+            }
+
+            Log.d("SAT", "Resultado: " + finalStr.toString());
+            //actualizarVista(3);
+            Type listType = new TypeToken<LinkedList<Proyecto>>() {
+            }.getType();
+            lProyectosActivos = new Gson().fromJson(finalStr.toString(), listType);
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            if (!(aBoolean == null)) {
+                if (aBoolean) {
+                    for (int i = 0; i < lProyectosActivos.size(); i++) {
+                        listaProyectosActivosTemp.add(i, lProyectosActivos.get(i).getNombre());
+                    }
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(getBaseContext(), android.R.layout.simple_list_item_1, listaProyectosActivosTemp);
+                    listaProyectosActivos.setAdapter(adapter);
+                    //      cambiarEstadoVisual(true);
+                    //    actualizarVista(5);
+                } else {
+                    mostrarMensaje("Error de conexion - Verifique la conexion", Toast.LENGTH_LONG);
+                }
+            } else {
+                mostrarMensaje("Error de conexion - Verifique la conexion", Toast.LENGTH_LONG);
+                // cambiarEstadoVisual(true);
             }
             super.onPostExecute(aBoolean);
         }

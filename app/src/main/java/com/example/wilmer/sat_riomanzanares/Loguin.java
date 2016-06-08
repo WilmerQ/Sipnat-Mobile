@@ -156,7 +156,7 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-       /* if (id == R.id.action_settings) {
+        /*if (id == R.id.action_settings) {
             return true;
         }*/
 
@@ -173,8 +173,6 @@ public class Loguin extends AppCompatActivity implements NavigationView.OnNaviga
 
             Intent intent = new Intent(Loguin.this, Registro.class);
             startActivity(intent);
-        } else if (id == R.id.Info) {
-
         } else if (id == R.id.salir) {
 
             finish();

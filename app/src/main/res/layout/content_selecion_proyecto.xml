@@ -13,46 +13,56 @@
     tools:showIn="@layout/app_bar_selecion_proyecto">
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Seleccion de Proyecto"
-        android:id="@+id/textView11"
-        android:textStyle="bold|italic"
-        android:textSize="30dp"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Listado de proyectos:"
         android:id="@+id/textView12"
-        android:textStyle="bold|italic"
-        android:textSize="20dp"
-        android:layout_below="@+id/textView11"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="20dp" />
+        android:layout_marginTop="0dp"
+        android:text="Listado de proyectos:"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textSize="20dp"
+        android:textStyle="bold|italic" />
 
     <ListView
+        android:id="@+id/listProyectos"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/listProyectos"
+        android:layout_above="@+id/progressBarSeleccionProyecto"
         android:layout_below="@+id/textView12"
         android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true"
         android:choiceMode="singleChoice" />
 
     <ProgressBar
+        android:id="@+id/progressBarSeleccionProyecto"
+        style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/progressBarSeleccionProyecto"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        style="@android:style/Widget.ProgressBar.Horizontal"
-        android:indeterminate="false" />
+        android:layout_marginBottom="160dp"
+        android:indeterminate="false"
+        android:layout_alignParentBottom="true"
+        android:layout_alignLeft="@+id/listViewProyectosActivos"
+        android:layout_alignStart="@+id/listViewProyectosActivos" />
+
+    <TextView
+        android:id="@+id/textView11"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/listProyectos"
+        android:layout_marginTop="15dp"
+        android:text="proyectos Alertas Activas:"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textSize="20dp"
+        android:textStyle="bold|italic" />
+
+    <ListView
+        android:id="@+id/listViewProyectosActivos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView11"
+        android:layout_centerHorizontal="true" />
 
 
 </RelativeLayout>

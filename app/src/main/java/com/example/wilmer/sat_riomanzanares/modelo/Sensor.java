@@ -12,10 +12,11 @@ import java.io.Serializable;
  * </p>
  * contiene la informacion del objeto Sensor.
  * Sensor: Dispositivo de medicion que trasmite informacion de variables ambientales.
+ *
  * @author Wilmer
  * @see java.io.Serializable
  */
-public class Sensor implements Serializable{
+public class Sensor implements Serializable {
 
     /**
      * id del sensor
@@ -37,6 +38,8 @@ public class Sensor implements Serializable{
      * id de la categoria del sensor
      */
     private Long idTipoSensor;
+
+    private String descripcion;
 
     /**
      * Gets id.
@@ -126,5 +129,13 @@ public class Sensor implements Serializable{
      */
     public void setNombreTipoSensor(String nombreTipoSensor) {
         this.nombreTipoSensor = nombreTipoSensor;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
     }
 }

@@ -69,7 +69,7 @@ public class Pop extends Activity {
     /**
      * The Id.
      */
-    TextView id;
+
     /**
      * The Tipo.
      */
@@ -109,11 +109,11 @@ public class Pop extends Activity {
         bar.setMax(5);
 
         sensor = (Sensor) getIntent().getExtras().getSerializable("sensorSeleccionado");
-        id = (TextView) findViewById(R.id.textView21);
+
         tipo = (TextView) findViewById(R.id.textView23);
 
-        id.setText("" + sensor.getId().toString());
-        tipo.setText(sensor.getNombreTipoSensor());
+
+        tipo.setText("Sensor Cod. " + sensor.getId() + ": " + sensor.getDescripcion());
 
         String url = "http://" + Conexion.getLocalhost() + ":" + Conexion.getPuerto() + "/sipnat/webresources/dato/" + sensor.getId();
 

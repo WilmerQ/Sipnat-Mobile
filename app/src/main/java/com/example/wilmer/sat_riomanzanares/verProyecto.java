@@ -24,6 +24,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -236,9 +237,9 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+       /* if (id == R.id.action_settings) {
             return true;
-        }
+        }*/
 
         return super.onOptionsItemSelected(item);
     }
@@ -377,6 +378,18 @@ public class verProyecto extends AppCompatActivity implements NavigationView.OnN
         }
 
 
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        Usuario usuario = (Usuario) getIntent().getExtras().getSerializable("usuarioParaVerProyecto");
+        Intent i;
+        i = new Intent(this, selecionProyecto.class);
+        i.putExtra("parametro", usuario.getNombreUsuario());
+        i.putExtra("usuarioDatos", usuario);
+        startActivity(i);
+        finish();
+        return super.onKeyDown(keyCode, event);
     }
 
     private Bitmap DownloadImage(String imageHttpAddress) {
