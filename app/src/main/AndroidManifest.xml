@@ -65,17 +65,17 @@
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.popup" />
 
-        <service android:name=".noUsados.alerta" />
-        <receiver
-            android:name=".noUsados.autoInicio"
-            android:enabled="true"
-            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
+        <!-- <service android:name=".noUsados.alerta" />
+         <receiver
+             android:name=".noUsados.autoInicio"
+             android:enabled="true"
+             android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+             <intent-filter>
+                 <action android:name="android.intent.action.BOOT_COMPLETED" />
 
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </receiver>
+                 <category android:name="android.intent.category.DEFAULT" />
+             </intent-filter>
+         </receiver>-->
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
